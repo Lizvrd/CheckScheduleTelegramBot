@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="https://github.com/Lizvrd/CheckScheduleBot/stargazers">
-    <img src="https://img.shields.io/github/stars/your-username/CheckScheduleBot.svg" alt="GitHub Stars">
+    <img src="https://img.shields.io/github/stars/Lizvrd/CheckScheduleBot.svg" alt="GitHub Stars">
   </a>
-  <a href="https://github.com/your-username/CheckScheduleBot/issues">
-    <img src="https://img.shields.io/github/issues/your-username/CheckScheduleBot.svg" alt="GitHub Issues">
+  <a href="https://github.com/Lizvrd/CheckScheduleBot/issues">
+    <img src="https://img.shields.io/github/issues/Lizvrd/CheckScheduleBot.svg" alt="GitHub Issues">
   </a>
-  <a href="https://github.com/your-username/CheckScheduleBot/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/your-username/CheckScheduleBot.svg" alt="GitHub License">
+  <a href="https://github.com/Lizvrd/CheckScheduleBot/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/Lizvrd/CheckScheduleBot.svg" alt="GitHub License">
   </a>
 </p>
 
