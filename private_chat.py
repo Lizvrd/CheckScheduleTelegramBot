@@ -20,16 +20,16 @@ async def start(message: Message) -> None:
         
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
-    await callback.message.edit_caption("Для получения расписания нужно выбрать режим работы. Выбери режим вывода:", reply_markup=keyboards.choice_mode_keyboard())
+    await callback.message.edit_caption(caption="Для получения расписания нужно выбрать режим работы. Выбери режим вывода:", reply_markup=keyboards.choice_mode_keyboard())
     
 @privateChatRouter.callback_query(lambda call: call.data == "today")
 async def today(callback: CallbackQuery) -> None:
-    await callback.message.edit_caption(text="Расписание на сегодня:", reply_markup=keyboards.today_schedule_keyboard())
+    await callback.message.edit_caption(caption="Расписание на сегодня:", reply_markup=keyboards.today_schedule_keyboard())
     
 @privateChatRouter.callback_query(lambda call: call.data == "current_day")
 async def current_day(callback: CallbackQuery) -> None:
-    await callback.message.edit_caption(text="Для отображения расписания на определенный день выбери день(автоматически будет определено какая неделя: над чертой или под чертой):", reply_markup=keyboards.current_day_schedule_keyboard())
+    await callback.message.edit_caption(caption="Для отображения расписания на определенный день выбери день(автоматически будет определено какая неделя: над чертой или под чертой):", reply_markup=keyboards.current_day_schedule_keyboard())
     
 @privateChatRouter.callback_query(lambda call: call.data == "week")
 async def week(callback: CallbackQuery) -> None:
-    await callback.message.edit_caption(text="Расписание на неделю:", reply_markup=keyboards.week_schedule_keyboard())
+    await callback.message.edit_caption(caption="Расписание на неделю:", reply_markup=keyboards.week_schedule_keyboard())
