@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/sayHello.png" alt="CheckScheduleBot" width="200" />
+  <img src="assets/sayHello.png" alt="CheckSheduleBot" width="600" />
 </p>
 
 <h1 align="center">CheckScheduleBot</h1>
