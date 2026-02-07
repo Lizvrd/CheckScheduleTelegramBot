@@ -6,7 +6,7 @@ from configBot import bot
 import keyboards
 from dotenv import load_dotenv
 import os
-from check_validate import validate_group_format
+from utils.check_validate import validate_group_format
 
 load_dotenv()
 
