@@ -2,21 +2,21 @@
   <img src="assets/sayHello.png" alt="CheckScheduleBot" width="600" />
 </p>
 
-<h1 align="center">CheckScheduleBot</h1>
+<h1 align="center">CheckScheduleTelegramBot</h1>
 
 <p align="center">
   📚 Телеграм-бот, который помогает студентам никогда не опаздывать на пары
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lizvrd/CheckSheduleBot/stargazers">
-    <img src="https://img.shields.io/github/stars/Lizvrd/CheckScheduleBot.svg" alt="GitHub Stars">
+  <a href="https://github.com/Lizvrd/CheckSheduleTelegramBot/stargazers">
+    <img src="https://img.shields.io/github/stars/Lizvrd/CheckScheduleTelegramBot.svg" alt="GitHub Stars">
   </a>
-  <a href="https://github.com/Lizvrd/CheckScheduleBot/issues">
-    <img src="https://img.shields.io/github/issues/Lizvrd/CheckScheduleBot.svg" alt="GitHub Issues">
+  <a href="https://github.com/Lizvrd/CheckScheduleTelegramBot/issues">
+    <img src="https://img.shields.io/github/issues/Lizvrd/CheckScheduleTelegramBot.svg" alt="GitHub Issues">
   </a>
-  <a href="https://github.com/Lizvrd/CheckScheduleBot/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/Lizvrd/CheckScheduleBot.svg" alt="GitHub License">
+  <a href="https://github.com/Lizvrd/CheckScheduleTelegramBot/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/Lizvrd/CheckScheduleTelegramBot.svg" alt="GitHub License">
   </a>
 </p>
 
