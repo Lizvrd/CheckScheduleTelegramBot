@@ -45,14 +45,34 @@ def get_set_xlsx_links(url: str)->List[str]:
 
     return xlsx_file_links
 
-def download_xlsx_files(url:str) -> None:
-    for schedule_link in get_set_xlsx_links(url=os.getenv('WEBSITE_LINK')):
-        response = requests.get(schedule_link)
-        
-        with open(f'schedules/{schedule_link.split("/")[-1]}', 'wb') as f:
-            f.write(response.content)  
+def filtered_schedules(url: str) -> List[str]:
+    all_xlsx_list = get_set_xlsx_links(url=os.getenv('WEBSITE_LINK'))
+    filtered_files = []
+    
+    for item in all_xlsx_list:
+        xls_file = item.split('/')[-1]
+        xls_file = xls_file.split('%20')
+    
+        if ('очная' in xls_file or 'заочная' in xls_file or 'очно-заочная' in xls_file) or ('Приложение' in xls_file) or ('над_под' in xls_file):
+            continue
+        else:
+            filtered_files.append(item)
 
-def filter_schedules():
-    pass       
-  
-print(filter_schedules())
+    return filtered_files
+
+def download_xlsx_files(url:str) -> None:
+    for schedule_link in filtered_schedules(url=os.getenv('WEBSITE_LINK')):
+        response = requests.get(schedule_link)
+            
+        # exam_list = []
+        # schedule_list = []
+
+        # for type_file in filtered_files:
+        #     if 'экзаменов' in type_file.split('%20'):
+        #         exam_list.append(type_file)
+        #     else:
+        #         schedule_list.append(type_file)
+
+        with open(f'schedules/{schedule_link.split("/")[-1]}', 'wb') as f:
+            f.write(response.content)
+print(download_xlsx_files(url=os.getenv('WEBSITE_LINK')))
