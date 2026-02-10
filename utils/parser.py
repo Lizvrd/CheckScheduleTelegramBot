@@ -20,10 +20,10 @@ def get_list_facultetes(url: str) -> List[str]:
     soup = BeautifulSoup(response.text, 'html.parser')
     
     list_facultetes = soup.find('tbody').text
-    lsit = list_facultetes.split('\n')
+    list = list_facultetes.split('\n')
     already_list = []
     
-    for item in lsit:
+    for item in list:
         if ((len(item) in range(1, 5)) or ('филиал' in item)) and (item != '\xa0'):
             already_list.append(item)
     
