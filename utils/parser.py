@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from typing import List
+from typing import List, Any
 from urllib.parse import urljoin
 import os
 
@@ -60,19 +60,14 @@ def filtered_schedules(url: str) -> List[str]:
 
     return filtered_files
 
-def download_xlsx_files(url:str) -> None:
+def download_xlsx_files(url:str) -> Any:
     for schedule_link in filtered_schedules(url=os.getenv('WEBSITE_LINK')):
         response = requests.get(schedule_link)
-            
-        # exam_list = []
-        # schedule_list = []
-
-        # for type_file in filtered_files:
-        #     if 'экзаменов' in type_file.split('%20'):
-        #         exam_list.append(type_file)
-        #     else:
-        #         schedule_list.append(type_file)
-
-        with open(f'schedules/{schedule_link.split("/")[-1]}', 'wb') as f:
-            f.write(response.content)
-print(download_xlsx_files(url=os.getenv('WEBSITE_LINK')))
+        
+        if 'экзаменов' in schedule_link.split('%20'):
+            with open(f'schedules/exams/{schedule_link.split("/")[-1]}', 'wb') as f:
+                f.write(response.content)
+        
+        else:
+            with open(f'schedules/semester/{schedule_link.split("/")[-1]}', 'wb') as f:
+                f.write(response.content)
