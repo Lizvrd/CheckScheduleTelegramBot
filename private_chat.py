@@ -14,21 +14,17 @@ privateChatRouter = Router()
 
 @privateChatRouter.message(CommandStart())
 async def startChat(message: Message) -> None:
-    if message.from_user.username != "skndcfck":
-        return
-    else:
-        await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"Привет, студент!\n\nЧтобы начать работу с ботом, напиши свою группу.\nПримеры: Б12-345-6\nб12-345-6")
+    await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"Привет, студент!\n\nЧтобы начать работу с ботом, напиши свою группу.\nПримеры: Б12-345-6\nб12-345-6")
 
 @privateChatRouter.message(F.text)
 async def start(message: Message) -> None:
-    if (validate_group_format(text=message.text) == False) and (len(message.text) == 9):
+    if (await validate_group_format(text=message.text) == False) and (len(message.text) == 9):
         await message.answer("Неверный формат группы. Попробуй еще раз.\nПримеры: Б12-345-6\nб12-345-6")
-    elif len(message.text) != 9:
-        return
-    elif (validate_group_format(text=message.text) == True):
+
+    elif (await validate_group_format(text=message.text) == True):
         await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: [ссылка].  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())    
     # await message.answer(f"Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: [ссылка].  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇", reply_markup=keyboards.start_keyboard())
-        
+     
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
     await callback.message.edit_caption(caption="Для получения расписания нужно выбрать режим работы. Выбери режим вывода:", reply_markup=keyboards.choice_mode_keyboard())
