@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import os
 
 load_dotenv()
-def check_current_date(url : str) -> str:
+async def check_current_date(url : str) -> str:
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     
@@ -15,7 +15,7 @@ def check_current_date(url : str) -> str:
     
     return current_date
 
-def get_list_facultetes(url: str) -> List[str]:
+async def get_list_facultetes(url: str) -> List[str]:
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     
@@ -29,7 +29,7 @@ def get_list_facultetes(url: str) -> List[str]:
     
     return already_list
 
-def get_set_xlsx_links(url: str)->List[str]:
+async def get_set_xlsx_links(url: str)->List[str]:
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     
@@ -45,8 +45,8 @@ def get_set_xlsx_links(url: str)->List[str]:
 
     return xlsx_file_links
 
-def filtered_schedules(url: str) -> List[str]:
-    all_xlsx_list = get_set_xlsx_links(url=os.getenv('WEBSITE_LINK'))
+async def filtered_schedules(url: str) -> List[str]:
+    all_xlsx_list = await get_set_xlsx_links(url=os.getenv('WEBSITE_LINK'))
     filtered_files = []
     
     for item in all_xlsx_list:
@@ -60,8 +60,8 @@ def filtered_schedules(url: str) -> List[str]:
 
     return filtered_files
 
-def download_xlsx_files(url:str) -> Any:
-    for schedule_link in filtered_schedules(url=os.getenv('WEBSITE_LINK')):
+async def download_xlsx_files(url:str) -> Any:
+    for schedule_link in await filtered_schedules(url=os.getenv('WEBSITE_LINK')):
         response = requests.get(schedule_link)
         
         if 'экзаменов' in schedule_link.split('%20'):
