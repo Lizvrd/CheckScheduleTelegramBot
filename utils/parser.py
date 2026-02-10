@@ -27,13 +27,23 @@ def get_list_facultetes(url: str) -> List[str]:
 def get_set_xlsx_links(url: str)->List:
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
+    
     files_links = soup.find_all('a', href=True)
     xlsx_file_links = []
-    for file in files_links:
-        href = file['href'].lower()
-        if file['href'].endswith('.xlsx') or file['href'].endswith('.xls'):
-            full_url = urljoin(url, file['href'])
-            xlsx_file_links.append(full_url.replace(' ', '%20'))
     
+    for file in files_links:
+        href = file['href']
+        
+        if href.endswith('.xlsx') or href.endswith('.xls'):
+            full_url = urljoin(url, href)
+            xlsx_file_links.append(full_url.replace(' ', '%20'))
+
     return xlsx_file_links
-print(get_set_xlsx_links(url=os.getenv('WEBSITE_LINK')))
+
+def download_xlsx_files(url:str) -> None:
+    for schedule_link in get_set_xlsx_links(url=os.getenv('WEBSITE_LINK')):
+        response = requests.get(schedule_link)
+        with open(f'schedules/{schedule_link.split("/")[-1]}', 'wb') as f:
+            f.write(response.content)  
+            
+print(download_xlsx_files(url = os.getenv('WEBSITE_LINK')))
