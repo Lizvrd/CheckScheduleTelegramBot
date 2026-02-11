@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/sayHello.png" alt="CheckScheduleBot" width="600" />
+  <img src="assets/sayHello.png" alt="CheckScheduleTelegramBot" width="600" />
 </p>
 
 <h1 align="center">CheckScheduleTelegramBot</h1>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lizvrd/CheckSheduleTelegramBot/stargazers">
+  <a href="https://github.com/Lizvrd/CheckScheduleTelegramBot/stargazers">
     <img src="https://img.shields.io/github/stars/Lizvrd/CheckScheduleTelegramBot.svg" alt="GitHub Stars">
   </a>
   <a href="https://github.com/Lizvrd/CheckScheduleTelegramBot/issues">
