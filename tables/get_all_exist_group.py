@@ -1,8 +1,9 @@
 import pandas as pd
 import os
 from typing import List
+import asyncio
 
-def get_exist_groups(dir: str) -> List[str]:
+async def get_exist_groups(dir: str) -> List[str]:
     exist_groups = []
 
     for root, dirs, files in os.walk(dir):
@@ -10,7 +11,7 @@ def get_exist_groups(dir: str) -> List[str]:
             # xlsx = pd.read_excel(os.path.join(root, file))            
             all_sheets = pd.read_excel(os.path.join('schedules/exams/Расписание%20экзаменов%20П%20осенний%20семестр%20%202025-26%20уч%20год.xlsx'), sheet_name=None)
             for sheet_names, xlsx in all_sheets.items():
-                column = xlsx['Unnamed: 0'].to_list()
+                column = xlsx['Unnamed: 0'].to_list() if xlsx['Unnamed: 0'].to_list() else xlsx['Unnamed: 1'].to_list()
                 for item in column:
                     item = str(item)
 
@@ -20,9 +21,9 @@ def get_exist_groups(dir: str) -> List[str]:
                         if filtered[0] not in exist_groups:
                             exist_groups.append(filtered[0])
     return exist_groups
-
-print(get_exist_groups('schedules/exams'))
-
+async def main():
+    print(await get_exist_groups('schedules/exams'))
+asyncio.run(main())
 
 # xlsx = pd.read_excel('schedules/exams/Расписание%20экзаменов%20П%20осенний%20семестр%20%202025-26%20уч%20год.xlsx')
 # column = xlsx['Unnamed: 0'].to_list()
