@@ -1,4 +1,9 @@
+# Virtuel enviroments
 *.env
 venv/
+
+# Python cache
 __pycache__/
+
+#Project-specific dirs/files
 schedules/

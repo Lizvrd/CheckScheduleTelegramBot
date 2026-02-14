@@ -9,7 +9,7 @@ def start_keyboard():
 def choice_mode_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Расписание на сегодня", callback_data="today")],
-        [InlineKeyboardButton(text="Расписание на определенный день", callback_data="current_day")],
+        [InlineKeyboardButton(text="Расписание на завтра", callback_data="tomorrow")],
         [InlineKeyboardButton(text="Расписание на неделю", callback_data="week")]
     ],row_width=1)
 

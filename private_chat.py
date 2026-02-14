@@ -33,9 +33,9 @@ async def get_schedule(callback: CallbackQuery) -> None:
 async def today(callback: CallbackQuery) -> None:
     await callback.message.edit_caption(caption="Расписание на сегодня:", reply_markup=keyboards.today_schedule_keyboard())
     
-@privateChatRouter.callback_query(lambda call: call.data == "current_day")
+@privateChatRouter.callback_query(lambda call: call.data == "tomorrow")
 async def current_day(callback: CallbackQuery) -> None:
-    await callback.message.edit_caption(caption="Для отображения расписания на определенный день выбери день(автоматически будет определено какая неделя: над чертой или под чертой):", reply_markup=keyboards.current_day_schedule_keyboard())
+    await callback.message.edit_caption(caption="Расписание на завтра:", reply_markup=keyboards.tomorrow_schedule_keyboard())
     
 @privateChatRouter.callback_query(lambda call: call.data == "week")
 async def week(callback: CallbackQuery) -> None:
