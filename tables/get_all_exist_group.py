@@ -21,15 +21,3 @@ async def get_exist_groups(dir: str) -> List[str]:
                         if filtered[0] not in exist_groups:
                             exist_groups.append(filtered[0])
     return exist_groups
-async def main():
-    print(await get_exist_groups('schedules/exams'))
-asyncio.run(main())
-
-# xlsx = pd.read_excel('schedules/exams/Расписание%20экзаменов%20П%20осенний%20семестр%20%202025-26%20уч%20год.xlsx')
-# column = xlsx['Unnamed: 0'].to_list()
-# access_groups = []
-# for item in column:
-#     item = str(item)
-#     if len(item) not in range(0,2) and item not in ['nan', 'группа']:
-#         filtered = item.split(' ')
-#         access_groups.append(filtered[0])
