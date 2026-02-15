@@ -1,4 +1,4 @@
-from get_all_exist_group import get_all_exist_groups
+from .get_all_exist_group import get_all_exist_groups
 import pandas as pd
 
 async def check_exist_groups(user_text: str) -> bool:
