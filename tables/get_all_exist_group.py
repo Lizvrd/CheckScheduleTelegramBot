@@ -3,33 +3,55 @@ import os
 from typing import List
 import asyncio
 
-async def get_exist_groups(dir: str) -> List[str]:
-    exist_groups = []
+async def get_all_exist_groups(dir: str) -> List[str]:
+    """Функция для получения списка существующих групп
+    
+    Args:
+        dir (str): Директория с файлами
+
+    Returns:
+        List[str]: Список существующих групп
+    """
+    exist_groups = set()
 
     for root, dirs, files in os.walk(dir):
         for file in files:
-            all_sheets = pd.read_excel(os.path.join(root, file))    
-                    
-            for sheet_names, xlsx in all_sheets.items():
-                if all_sheets['Unnamed: 0'].dtype != 'str':
-                    column = all_sheets['Unnamed: 1'].tolist()
-                else:
-                    column = all_sheets['Unnamed: 0'].tolist()
-                for item in column:
+            file_path = os.path.join(root, file)
+            
+            try:
+                all_sheets_dict = pd.read_excel(file_path, sheet_name=None)
+            except Exception as e:
+                print(f"Ошибка чтения файла {file}: {e}")
+                continue
+
+            for sheet_name, df in all_sheets_dict.items():
+                
+                if df.empty:
+                    continue
+                
+                column_data = []
+                
+                if 'Unnamed: 0' in df.columns:
+                    if df['Unnamed: 0'].dtype != 'str': 
+                        if 'Unnamed: 1' in df.columns:
+                            column_data = df['Unnamed: 1'].tolist()
+                    else:
+                        column_data = df['Unnamed: 0'].tolist()
+                elif 'Unnamed: 1' in df.columns:
+                    column_data = df['Unnamed: 1'].tolist()
+                
+                if not column_data:
+                    continue
+
+                for item in column_data:
                     item = str(item)
 
-                    if len(item) not in range(0,2) and (item not in ['nan', 'группа', 'группы', 'Группы']):
+                    # Фильтрация мусора и заголовков
+                    if len(item) > 2 and (item not in ['nan', 'group', 'группа', 'группы', 'Группы']):
                         filtered = item.split(' ')
-                        group_tag = filtered[0] if len(filtered[0]) == 8 else filtered[0][0:9]
-                        if group_tag not in exist_groups:
-                            exist_groups.append(group_tag)
-                        else: continue
-    return exist_groups
+                        # Безопасное получение тега группы
+                        if filtered:
+                            group_tag = filtered[0] if len(filtered[0]) == 8 else filtered[0][0:9]
+                            exist_groups.add(group_tag)
 
-
-async def main():
-    exist_groups = await get_exist_groups('schedules/exams')
-    print(exist_groups)
-
-if __name__ == '__main__':
-    asyncio.run(main())
+    return list(exist_groups)
