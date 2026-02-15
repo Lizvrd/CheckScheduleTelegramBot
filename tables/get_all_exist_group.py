@@ -8,16 +8,28 @@ async def get_exist_groups(dir: str) -> List[str]:
 
     for root, dirs, files in os.walk(dir):
         for file in files:
-            # xlsx = pd.read_excel(os.path.join(root, file))            
-            all_sheets = pd.read_excel(os.path.join('schedules/exams/Расписание%20экзаменов%20П%20осенний%20семестр%20%202025-26%20уч%20год.xlsx'), sheet_name=None)
+            all_sheets = pd.read_excel(os.path.join(root, file))    
+                    
             for sheet_names, xlsx in all_sheets.items():
-                column = xlsx['Unnamed: 0'].to_list() if xlsx['Unnamed: 0'].to_list() else xlsx['Unnamed: 1'].to_list()
+                if all_sheets['Unnamed: 0'].dtype != 'str':
+                    column = all_sheets['Unnamed: 1'].tolist()
+                else:
+                    column = all_sheets['Unnamed: 0'].tolist()
                 for item in column:
                     item = str(item)
 
-                    if len(item) not in range(0,2) and item not in ['nan', 'группа', 'группы']:
+                    if len(item) not in range(0,2) and (item not in ['nan', 'группа', 'группы', 'Группы']):
                         filtered = item.split(' ')
-
-                        if filtered[0] not in exist_groups:
-                            exist_groups.append(filtered[0])
+                        group_tag = filtered[0] if len(filtered[0]) == 8 else filtered[0][0:9]
+                        if group_tag not in exist_groups:
+                            exist_groups.append(group_tag)
+                        else: continue
     return exist_groups
+
+
+async def main():
+    exist_groups = await get_exist_groups('schedules/exams')
+    print(exist_groups)
+
+if __name__ == '__main__':
+    asyncio.run(main())
