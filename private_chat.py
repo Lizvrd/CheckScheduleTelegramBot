@@ -7,6 +7,7 @@ import keyboards
 from dotenv import load_dotenv
 import os
 from utils.check_validate import validate_group_format
+from tables.check_exist_groups import check_exist_groups
 
 load_dotenv()
 
@@ -21,9 +22,11 @@ async def start(message: Message) -> None:
     if (await validate_group_format(text=message.text) == False) and (len(message.text) == 9):
         await message.answer("Неверный формат группы. Попробуй еще раз.\nПримеры: Б12-345-6\nб12-345-6")
     
+    if await check_exist_groups(message.text) == False:
+        await bot.send_photo(message.from_user.id, photo=os.getenv("NOT_FOUND_GROUP_LINK"), caption=f"Группа {message.text} не найдена. Проверьте правильность ввода.\nПримеры: Б12-345-6\nб12-345-6")
+    
     elif (await validate_group_format(text=message.text) == True):
         await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: <a href='https://github.com/Lizvrd/CheckScheduleTelegramBot'>GitHub</a>!  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())    
-    # await message.answer(f"Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: [ссылка].  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇", reply_markup=keyboards.start_keyboard())
      
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
