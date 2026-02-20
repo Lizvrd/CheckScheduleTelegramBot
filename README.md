@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/sayHello.png" alt="CheckScheduleTelegramBot" width="600" />
+  <img src="assets/SAY_HELLO.png" alt="CheckScheduleTelegramBot" width="600" />
 </p>
 
 <h1 align="center">CheckScheduleTelegramBot</h1>
