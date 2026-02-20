@@ -56,7 +56,7 @@ async def get_set_xlsx_links(url: str)->List[str]:
     return xlsx_file_links
 
 async def filtered_schedules(url: str) -> List[str]:
-    all_xlsx_list = await get_set_xlsx_links(url=os.getenv('SCHEDULES_URL'))
+    all_xlsx_list = await get_set_xlsx_links(url)
     filtered_files = []
     
     for item in all_xlsx_list:
