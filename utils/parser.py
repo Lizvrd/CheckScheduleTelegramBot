@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from typing import List, Any
 from urllib.parse import urljoin
 import os
+import asyncio
 
 load_dotenv()
 async def check_current_date(url : str) -> str:
@@ -14,6 +15,15 @@ async def check_current_date(url : str) -> str:
     current_date = schedule_data.find('span').text
     
     return current_date
+
+async def get_upper_under_week(url: str) -> str:
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    type_week = soup.find('div', class_="site-header-top-element ref-week type-separated").text
+    type_week = type_week.split('\n')[1]
+    
+    return type_week
 
 async def get_list_facultetes(url: str) -> List[str]:
     response = requests.get(url)
@@ -46,7 +56,7 @@ async def get_set_xlsx_links(url: str)->List[str]:
     return xlsx_file_links
 
 async def filtered_schedules(url: str) -> List[str]:
-    all_xlsx_list = await get_set_xlsx_links(url=os.getenv('WEBSITE_LINK'))
+    all_xlsx_list = await get_set_xlsx_links(url)
     filtered_files = []
     
     for item in all_xlsx_list:
@@ -61,7 +71,7 @@ async def filtered_schedules(url: str) -> List[str]:
     return filtered_files
 
 async def download_xlsx_files(url:str) -> Any:
-    for schedule_link in await filtered_schedules(url=os.getenv('WEBSITE_LINK')):
+    for schedule_link in await filtered_schedules(url=os.getenv('SCHEDULES_URL')):
         response = requests.get(schedule_link)
         
         if 'экзаменов' in schedule_link.split('%20'):
