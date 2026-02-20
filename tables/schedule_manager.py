@@ -198,12 +198,3 @@ async def get_week_schedule(group) -> str:
             schedule_week = await filter(df=schedule_week)
         result += f'{day}\n{await message_constructor(schedule_week)}\n'
     return result
-
-    
-async def main():
-    print(await get_today_schedule('Б24-281-1'))
-    print(await get_tomorrow_schedule('Б24-281-1'))
-    print(await get_week_schedule('Б24-281-1'))
-
-if __name__ == '__main__':
-    asyncio.run(main())
