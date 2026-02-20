@@ -6,27 +6,26 @@ from dotenv import load_dotenv
 import asyncio
 
 load_dotenv()
-async def get_upper_under_week_type(url: str) -> str:
+
+async def get_upper_under_week_type(url) -> str:
     response = requests.get(url)
     page_soup = soup(response.text, 'html.parser')
     upper_under_week_type = page_soup.find('div', {'class': 'site-header-top-element ref-week type-separated'}).text
     return upper_under_week_type
 
 
-async def filter(url: str): 
-    testWork = pd.read_excel(os.path.join('schedules/semester/Расписание%20занятий%20П,%20оч.%20форма%20обучения,%20весенний%20семестр%202025-2026%20уч.г..xlsx'),sheet_name='11')
-    # print(testWork['Unnamed: 4'])
+async def filter(df: pd.DataFrame): 
+    # Работаем непосредственно с DataFrame, а не читаем его из файла
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        filtred  = testWork['Unnamed: 4'] == 'II' if await get_upper_under_week_type(url) == 'Неделя под чертой' else testWork['Unnamed: 4'] == 'I'
-        result = testWork[filtred]
-        with open('test.txt', 'w', encoding='utf-8') as f:
-            f.write(result.to_string())
-
-
-async def main():
-    url = os.getenv('WEBSITE_URL')
-    upper_under_week_type = await filter(url)
-    print(upper_under_week_type)
-
-if __name__ == '__main__':
-    asyncio.run(main())
+        # Используем правильный способ фильтрации DataFrame
+        week_type = await get_upper_under_week_type(url=os.getenv('WEBSITE_URL'))
+        
+        # Фильтруем по типу недели (I или II)
+        if week_type == 'Неделя под чертой':
+            # Для недели под чертой фильтруем по значению 'II'
+            filtered = df[df.iloc[:, 4] == 'II'] if len(df.columns) > 4 else df
+        else:
+            # Для обычной недели фильтруем по значению 'I'
+            filtered = df[df.iloc[:, 4] == 'I'] if len(df.columns) > 4 else df
+            
+        return filtered
