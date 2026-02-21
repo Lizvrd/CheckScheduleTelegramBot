@@ -3,7 +3,7 @@ import os
 import datetime
 from typing import Dict, List
 import asyncio
-from upper_under_schedule_filter import filter, get_upper_under_week_type
+from .upper_under_schedule_filter import filter, get_upper_under_week_type
 
 WEEK_DAYS = {
     0: ['Понедельник', 2],
