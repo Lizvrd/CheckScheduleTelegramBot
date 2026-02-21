@@ -50,4 +50,4 @@ async def send_tomorrow_schedule(callback: CallbackQuery, state: FSMContext) -> 
 async def send_week_schedule(callback: CallbackQuery, state: FSMContext) -> None:
     saved_data = await state.get_data()
     group = saved_data.get("group")
-    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"Расписание на неделю: \n{await get_today_schedule(group=group)}"),reply_markup=keyboards.week_schedule_keyboard())
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"Расписание на неделю: \n{await get_week_schedule(group=group)}"),reply_markup=keyboards.week_schedule_keyboard())

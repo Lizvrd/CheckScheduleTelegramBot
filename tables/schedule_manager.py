@@ -3,7 +3,7 @@ import os
 import datetime
 from typing import Dict, List
 import asyncio
-from .upper_under_schedule_filter import filter, get_upper_under_week_type
+from upper_under_schedule_filter import filter, get_upper_under_week_type
 
 WEEK_DAYS = {
     0: ['Понедельник', 2],
@@ -198,3 +198,9 @@ async def get_week_schedule(group) -> str:
             schedule_week = await filter(df=schedule_week)
         result += f'{day}\n{await message_constructor(schedule_week)}\n'
     return result
+
+async def main():
+    print(await get_week_schedule('С21-361-1'))
+
+if __name__ == '__main__':
+    asyncio.run(main())

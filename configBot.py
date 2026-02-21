@@ -3,7 +3,6 @@ import os
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot
-from pydantic import BaseConfig
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
