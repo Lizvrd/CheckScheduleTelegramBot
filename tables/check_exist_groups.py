@@ -1,5 +1,4 @@
 from .schedule_manager import save_groups_sheet_in_file
-import pandas as pd
 
 async def check_exist_groups(user_text: str) -> bool:
     """## Функция для проверки написанного сообщения пользователя(группы)
