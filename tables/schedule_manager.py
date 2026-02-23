@@ -87,7 +87,7 @@ async def filter_columns_group(group: str) -> pd.DataFrame:
         df = df.iloc[:, 10:-2]
     return df
     
-async def filter_columns_group_by_date() -> str:
+async def filter_columns_group_by_date() -> List[str]:
     """Фильтрация столбцов по группе и дате
     
     Args:
@@ -98,8 +98,8 @@ async def filter_columns_group_by_date() -> str:
         str: Строковое представление отфильтрованного DataFrame
     """
     date = datetime.datetime.now().weekday()
-    week_day = WEEK_DAYS[date]
-    return week_day[1]
+    week_day = list(WEEK_DAYS[date])
+    return [week_day[1], date]
 
 async def message_constructor(schedule: pd.DataFrame) -> str:
     """Construct a message with the schedule information
@@ -146,34 +146,32 @@ async def get_today_schedule(group: str) -> str:
     Returns:
         str: Строковое представление расписания на сегодня
     """
-    date_today = await filter_columns_group_by_date()
-    if date_today == 'Воскресенье':
+    date_list = await filter_columns_group_by_date()
+    _date_today = int(date_list[1])
+    if _date_today == 6:
         return "Сегодня выходной. Занятия не проводятся :)"
-    else:
-        schedule_today = await filter_columns_group(group)
-        schedule_today = schedule_today.iloc[date_today:date_today+14]
-        schedule_today = await filter(df=schedule_today)
-    
+
+    schedule_today = await filter_columns_group(group)
+    schedule_today = schedule_today.iloc[_date_today:_date_today+14]
+    schedule_today = await filter(df=schedule_today)
+
     return await message_constructor(schedule_today)
     
 
 async def get_tomorrow_schedule(group) -> str:
-    date = datetime.datetime.now().weekday()
-    try:
-        date_tomorrow = date + 1
-        if date_tomorrow == 6:
-            return "Завтра выходной. Занятия не проводятся :)"
-        elif date_tomorrow == 7:
-            date_tomorrow = 0
-        
-        schedule_tomorrow = await filter_columns_group(group)
-        schedule_tomorrow = schedule_tomorrow.iloc[date_tomorrow:date_tomorrow+14]
-        schedule_tomorrow = await filter(df=schedule_tomorrow)
-    
-        return await message_constructor(schedule_tomorrow)
-    except KeyError:
+    date_now = await filter_columns_group_by_date()
+    _date_tomorrow = int(date_now[1]) + 1
+    if _date_tomorrow == 6:
         return "Завтра выходной. Занятия не проводятся :)"
+    elif _date_tomorrow == 7:
+        _date_tomorrow = 0
+    
+    schedule_tomorrow = await filter_columns_group(group)
+    schedule_tomorrow = schedule_tomorrow.iloc[WEEK_DAYS[_date_tomorrow][1]:WEEK_DAYS[_date_tomorrow][1]+14]
+    schedule_tomorrow = await filter(df=schedule_tomorrow)
 
+    return await message_constructor(schedule_tomorrow)
+    
 async def get_week_schedule(group) -> str:
     date_name = list(WEEK_DAYS.keys())
     result = ""
