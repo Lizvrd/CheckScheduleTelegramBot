@@ -38,16 +38,16 @@ async def get_schedule(callback: CallbackQuery) -> None:
 async def send_today_schedule(callback: CallbackQuery, state: FSMContext) -> None:
     saved_data = await state.get_data()
     group = saved_data.get("group")
-    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("TODAY_SCHEDULE_LINK"),caption=f"Расписание на сегодня: \n{await get_today_schedule(group=group)}"),reply_markup=keyboards.today_schedule_keyboard())
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("TODAY_SCHEDULE_LINK"),caption=f"Расписание на сегодня: \n{await get_today_schedule(group=group)}"),reply_markup=keyboards.schedule_keyboard())
 
 @privateChatRouter.callback_query(lambda call: call.data == "tomorrow")
 async def send_tomorrow_schedule(callback: CallbackQuery, state: FSMContext) -> None:
     saved_data = await state.get_data()
     group = saved_data.get("group")
-    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("TOMORROW_SCHEDULE_LINK"),caption=f"Расписание на завтра: \n{await get_tomorrow_schedule(group=group)}"),reply_markup=keyboards.tomorrow_schedule_keyboard())
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("TOMORROW_SCHEDULE_LINK"),caption=f"Расписание на завтра: \n{await get_tomorrow_schedule(group=group)}"),reply_markup=keyboards.schedule_keyboard())
     
 @privateChatRouter.callback_query(lambda call: call.data == "week")
 async def send_week_schedule(callback: CallbackQuery, state: FSMContext) -> None:
     saved_data = await state.get_data()
     group = saved_data.get("group")
-    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"Расписание на неделю: \n{await get_week_schedule(group=group)}"),reply_markup=keyboards.week_schedule_keyboard())
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"Расписание на неделю: \n{await get_week_schedule(group=group)}"),reply_markup=keyboards.schedule_keyboard())

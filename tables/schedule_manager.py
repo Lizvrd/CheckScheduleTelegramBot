@@ -147,8 +147,8 @@ async def get_today_schedule(group: str) -> str:
         str: Строковое представление расписания на сегодня
     """
     date_list = await filter_columns_group_by_date()
-    _date_today = int(date_list[1])
-    if _date_today == 6:
+    _date_today = int(date_list[0])
+    if _date_today > 86:
         return "Сегодня выходной. Занятия не проводятся :)"
 
     schedule_today = await filter_columns_group(group)
