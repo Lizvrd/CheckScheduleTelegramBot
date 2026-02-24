@@ -1,4 +1,4 @@
-from .schedule_manager import save_groups_sheet_in_file
+from .schedule_manager import update_groups_cache
 
 async def check_exist_groups(user_text: str) -> bool:
     """## Функция для проверки написанного сообщения пользователя(группы)
@@ -20,9 +20,6 @@ async def check_exist_groups(user_text: str) -> bool:
     Returns:
         bool: Возвращает True, если пользователь написал правильно и существует, иначе False
     """
-    
-    exist_groups = await save_groups_sheet_in_file(dir='schedules/semester')
-    if user_text.upper() in list(exist_groups.keys()):
-        return True
-    else:
-        return False
+    exist_groups = await update_groups_cache()
+    user_text = user_text.upper().strip()
+    return True if user_text in list(exist_groups.keys()) else False
