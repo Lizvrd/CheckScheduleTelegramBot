@@ -36,8 +36,8 @@ async def save_group(message: Message) -> None:
     await set_user(tg_id=message.from_user.id, username=message.from_user.username)
     await update_user_group(tg_id=message.from_user.id, group=user_text)
     
-    await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"🦊Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: <a href='https://github.com/Lizvrd/CheckScheduleTelegramBot'>GitHub</a>!  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())    
-    
+    await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"🦊Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: <a href='https://github.com/Lizvrd/CheckScheduleTelegramBot'>GitHub</a>!  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())
+
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("GROUP_IS_FOUND_LINK"),caption="🦊Для получения расписания нужно выбрать режим работы. Выбери режим вывода:"), reply_markup=keyboards.choice_mode_keyboard())
