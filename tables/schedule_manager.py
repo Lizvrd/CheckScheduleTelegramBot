@@ -3,7 +3,11 @@ import os
 import datetime
 from typing import Dict, List
 import asyncio
+<<<<<<< HEAD
 from .upper_under_schedule_filter import filter, get_upper_under_week_type
+=======
+from .upper_under_schedule_filter import filter
+>>>>>>> feature/create-users-database
 
 WEEK_DAYS = {
     0: ['Понедельник', 2],
@@ -16,7 +20,11 @@ WEEK_DAYS = {
 
 COUNT_LESSONS_DAY = 7
 
+<<<<<<< HEAD
 async def save_groups_sheet_in_file(dir: str)->Dict[str, str]:
+=======
+def save_groups_sheets_from_file(dir: str)->Dict[str, str]:
+>>>>>>> feature/create-users-database
     """Сохранение путей к файлу и листа по названию группы в шапке документа
 
     Args:
@@ -59,6 +67,22 @@ async def save_groups_sheet_in_file(dir: str)->Dict[str, str]:
     
     return groups
 
+<<<<<<< HEAD
+=======
+async def update_groups_cache():
+    """Обновление кэша групп
+    
+    Эта функция обновляет глобальную переменную groups,
+    вызывая save_groups_sheets_from_file в отдельном потоке.
+    
+    Returns:
+        Dict: Обновленный словарь групп
+    """
+    global groups
+    groups = await asyncio.to_thread(save_groups_sheets_from_file, 'schedules/semester/')
+    return groups
+
+>>>>>>> feature/create-users-database
 async def filter_columns_group(group: str) -> pd.DataFrame:
     """Фильтрация столбцов по группе
     
@@ -71,6 +95,7 @@ async def filter_columns_group(group: str) -> pd.DataFrame:
     Returns:
         DataFrame: Отфильтрованный DataFrame
     """
+<<<<<<< HEAD
     founded_sheet_group = await save_groups_sheet_in_file('schedules/semester/')
     
     file_name = founded_sheet_group[group][0]
@@ -202,3 +227,43 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+=======
+    founded_sheet_group = await update_groups_cache()
+    founded_sheet_group = founded_sheet_group[group]
+    file_name = founded_sheet_group[0]
+    sheet_name = founded_sheet_group[1]
+    
+    df = pd.read_excel(file_name, sheet_name=sheet_name)
+    header = list(founded_sheet_group[2])
+    # Если группа находится в 5-й позиции (индекс 5), выбираем первые 9 столбцов
+    # Иначе выбираем столбцы с 10-го по предпоследний
+    if header.index(group) == 5:
+        # Проверяем, что в DataFrame достаточно столбцов
+        if len(df.columns) >= 9:
+            df = df.iloc[:, :9]
+        else:
+            # Если столбцов меньше 9, берем все столбцы
+            df = df.iloc[:, :]
+    else:
+        # Проверяем, что в DataFrame достаточно столбцов для среза [10:-2]
+        if len(df.columns) > 10:
+            df = df.iloc[:, 10:-2]
+        elif len(df.columns) > 0:
+            # Если столбцов меньше или равно 10, но больше 0, берем все столбцы
+            df = df.iloc[:, :]
+        # Если нет столбцов, возвращаем пустой DataFrame
+    return df
+     
+async def filter_columns_group_by_date() -> List[str | int]:
+    """Получение информации о дне недели
+    
+    Эта функция возвращает информацию о текущем дне недели
+    и соответствующем ему индексе в расписании.
+        
+    Returns:
+        List[str | int]: Список, содержащий индекс дня в расписании и номер дня недели
+    """
+    date = datetime.datetime.now().weekday()
+    week_day = list(WEEK_DAYS[date])
+    return [week_day[1], date]
+>>>>>>> feature/create-users-database

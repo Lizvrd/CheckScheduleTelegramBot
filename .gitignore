@@ -6,4 +6,11 @@ venv/
 __pycache__/
 
 #Project-specific dirs/files
+<<<<<<< HEAD
 schedules/
+=======
+schedules/
+
+#Database
+*.db
+>>>>>>> feature/create-users-database

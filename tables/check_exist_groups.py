@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from .schedule_manager import save_groups_sheet_in_file
+=======
+from .schedule_manager import update_groups_cache
+>>>>>>> feature/create-users-database
 
 async def check_exist_groups(user_text: str) -> bool:
     """## Функция для проверки написанного сообщения пользователя(группы)
@@ -21,7 +25,11 @@ async def check_exist_groups(user_text: str) -> bool:
         bool: Возвращает True, если пользователь написал правильно и существует, иначе False
     """
     
+<<<<<<< HEAD
     exist_groups = await save_groups_sheet_in_file(dir='schedules/semester')
+=======
+    exist_groups = await update_groups_cache()
+>>>>>>> feature/create-users-database
     if user_text.upper() in list(exist_groups.keys()):
         return True
     else:
