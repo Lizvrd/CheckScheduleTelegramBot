@@ -3,7 +3,7 @@ import os
 import datetime
 from typing import Dict, List
 import asyncio
-from .upper_under_schedule_filter import filter
+from .upper_under_schedule_filter import filter, get_upper_under_week_type
 
 WEEK_DAYS = {
     0: ['Понедельник', 2],
@@ -16,9 +16,7 @@ WEEK_DAYS = {
 
 COUNT_LESSONS_DAY = 7
 
-groups_cache ={}
-
-def save_groups_sheet_from_file(dir: str)->Dict[str, str]:
+async def save_groups_sheet_in_file(dir: str)->Dict[str, str]:
     """Сохранение путей к файлу и листа по названию группы в шапке документа
 
     Args:
@@ -49,7 +47,7 @@ def save_groups_sheet_from_file(dir: str)->Dict[str, str]:
                         for item in second_row:
                             if pd.notna(item):  # Проверяем, что значение не NaN
                                 # Преобразуем в строку и убираем лишние пробелы
-                                group_name = str(item).strip().upper()
+                                group_name = str(item).strip()
                                 if len(group_name) == 9 and group_name[0] in ['Б','М','С'] and group_name not in groups:  # Проверяем, что строка не пустая
                                     groups[group_name] = [file_path, sheet_name, second_row.to_list()]
                                 else:
@@ -60,11 +58,6 @@ def save_groups_sheet_from_file(dir: str)->Dict[str, str]:
                 continue
     
     return groups
-
-async def update_groups_cache():
-    global groups_cache
-    groups_cache = await asyncio.to_thread(save_groups_sheet_from_file, 'schedules/semester')
-    return groups_cache
 
 async def filter_columns_group(group: str) -> pd.DataFrame:
     """Фильтрация столбцов по группе
@@ -78,30 +71,23 @@ async def filter_columns_group(group: str) -> pd.DataFrame:
     Returns:
         DataFrame: Отфильтрованный DataFrame
     """
-    group_name = group.strip().upper()
+    founded_sheet_group = await save_groups_sheet_in_file('schedules/semester/')
     
-    if not groups_cache:
-        await update_groups_cache()
+    file_name = founded_sheet_group[group][0]
+    sheet_name = founded_sheet_group[group][1]
     
-    file_info = groups_cache.get(group_name)
-    
-    if not file_info:
-        return pd.DataFrame()
-    
-    file_path = file_info[0]
-    sheet_name = file_info[1]
-    header_list = file_info[2]
-    df = await asyncio.to_thread(pd.read_excel, file_path, sheet_name=sheet_name, header=None)
+    df = pd.read_excel(file_name, sheet_name=sheet_name)
+    header = founded_sheet_group[group][2]
     
     # Если группа находится в 5-й позиции (индекс 5), выбираем первые 9 столбцов
     # Иначе выбираем столбцы с 10-го по предпоследний
-    if header_list.index(group_name) == 5:
+    if header.index(group) == 5:
         df = df.iloc[:, :9]
     else:
         df = df.iloc[:, 10:-2]
     return df
     
-async def filter_columns_group_by_date() -> List[str | int]:
+async def filter_columns_group_by_date() -> List[str]:
     """Фильтрация столбцов по группе и дате
     
     Args:
@@ -172,7 +158,7 @@ async def get_today_schedule(group: str) -> str:
     return await message_constructor(schedule_today)
     
 
-async def get_tomorrow_schedule(group: str) -> str:
+async def get_tomorrow_schedule(group) -> str:
     date_now = await filter_columns_group_by_date()
     _date_tomorrow = int(date_now[1]) + 1
     if _date_tomorrow == 6:
@@ -186,7 +172,7 @@ async def get_tomorrow_schedule(group: str) -> str:
 
     return await message_constructor(schedule_tomorrow)
     
-async def get_week_schedule(group: str) -> str:
+async def get_week_schedule(group) -> str:
     date_name = list(WEEK_DAYS.keys())
     result = ""
     for i in date_name:
@@ -210,3 +196,9 @@ async def get_week_schedule(group: str) -> str:
             schedule_week = await filter(df=schedule_week)
         result += f'{day}\n{await message_constructor(schedule_week)}\n'
     return result
+
+async def main():
+    print(await get_week_schedule('С21-361-1'))
+
+if __name__ == '__main__':
+    asyncio.run(main())
