@@ -11,19 +11,9 @@ def choice_mode_keyboard():
         [InlineKeyboardButton(text="Расписание на сегодня", callback_data="today")],
         [InlineKeyboardButton(text="Расписание на завтра", callback_data="tomorrow")],
         [InlineKeyboardButton(text="Расписание на неделю", callback_data="week")]
-    ],row_width=1)
-
-def today_schedule_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")]
     ])
 
-def tomorrow_schedule_keyboard():
+def schedule_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")]
-    ])
-
-def week_schedule_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[        
         [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")]
     ])
