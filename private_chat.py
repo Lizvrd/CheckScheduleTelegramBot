@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os
 from aiogram.fsm.context import FSMContext
 from tables.check_exist_groups import check_exist_groups
-from tables.schedule_manager import get_today_schedule, get_tomorrow_schedule, get_week_schedule
+from tables.send_schedule import get_today_schedule, get_tomorrow_schedule, get_week_schedule
 from utils.save_user_group import UserState
 
 load_dotenv()

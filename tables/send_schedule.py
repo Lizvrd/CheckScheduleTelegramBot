@@ -1,6 +1,7 @@
 import pandas as pd
-from schedule_manager import filter_columns_group, filter_columns_group_by_date, WEEK_DAYS
-from upper_under_schedule_filter import filter
+from .schedule_manager import filter_columns_group, filter_columns_group_by_date, WEEK_DAYS
+from .upper_under_schedule_filter import get_upper_under_week_type
+
 async def message_constructor(schedule: pd.DataFrame) -> str:
     """Construct a message with the schedule information
 
@@ -17,7 +18,6 @@ async def message_constructor(schedule: pd.DataFrame) -> str:
         return "Нет занятий"
     
     # Import the filter function to determine current week type
-    from upper_under_schedule_filter import get_upper_under_week_type
     week_type = get_upper_under_week_type()
     is_odd_week = week_type % 2 != 0  # True for 'II' week, False for 'I' week
     
