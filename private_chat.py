@@ -20,7 +20,7 @@ async def startChat(message: Message) -> None:
 
     user = await get_user_group(message.from_user.id)
     if user:
-        await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"🦊Привет, студент!\nРад снова тебя видеть .\nТвоя сохраненная группа: <i>{user}</i>.\n\nЕсли ты хочешь изменить свою группу, напиши новое название группы.\n\nПримеры: Б12-345-6\nб12-345-6")
+        await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"🦊Привет, студент!\nРад снова тебя видеть .\nТвоя сохраненная группа: <i>{user}</i>.\n\nЕсли ты хочешь изменить свою группу, напиши новое название группы.\n\nПримеры: Б12-345-6\nб12-345-6", reply_markup=keyboards.start_keyboard())
         return
     
     await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"🦊Привет, студент!\n\nЧтобы начать работу с ботом, напиши свою группу.\nПримеры: Б12-345-6\nб12-345-6")
