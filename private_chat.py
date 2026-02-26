@@ -9,7 +9,7 @@ import os
 from aiogram.fsm.context import FSMContext
 from tables.check_exist_groups import check_exist_groups
 from tables.send_schedule import get_today_schedule, get_tomorrow_schedule, get_week_schedule
-from database.requests import set_user, update_user_group, get_user_group
+from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule
 
 load_dotenv()
 
@@ -66,8 +66,11 @@ async def send_tomorrow_schedule(callback: CallbackQuery) -> None:
 async def send_week_schedule(callback: CallbackQuery) -> None:
     group = await get_user_group(tg_id=callback.from_user.id)
 
+    schedule_text = await get_cached_schedule(group=group)
     if not group:
-        await callback.answer(text="Сначала введите группу в чат")
+        await callback.message.answer(text="Сначала введите группу в чат")
         return
-
-    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{await get_week_schedule(group=group)}"),reply_markup=keyboards.schedule_keyboard())
+    if len(schedule_text) > 1024:
+        await callback.message.delete()
+        await callback.message.answer(text=schedule_text, reply_markup=keyboards.schedule_keyboard())
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{schedule_text}"),reply_markup=keyboards.schedule_keyboard())

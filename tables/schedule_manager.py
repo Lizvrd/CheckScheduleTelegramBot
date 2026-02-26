@@ -1,9 +1,11 @@
+
 import pandas as pd
 import os
 import datetime
 from typing import Dict, List
 import asyncio
 from .upper_under_schedule_filter import filter
+from database.requests import save_cached_schedule, is_cache_empty
 
 WEEK_DAYS = {
     0: ['Понедельник', 2],
@@ -19,7 +21,6 @@ COUNT_LESSONS_DAY = 7
 
 def save_groups_sheets_from_file(dir: str)->Dict[str, str]:
     """Сохранение путей к файлу и листа по названию группы в шапке документа
-
     Args:
         dir (str): директория с файлами. по дефолту schedules/semester
 
@@ -104,7 +105,7 @@ async def filter_columns_group(group: str) -> pd.DataFrame:
     else:
         # Проверяем, что в DataFrame достаточно столбцов для среза [10:-2]
         if len(df.columns) > 10:
-            df = df.iloc[:, 10:-2]
+            df = df.iloc[:, 10:-1]
         elif len(df.columns) > 0:
             # Если столбцов меньше или равно 10, но больше 0, берем все столбцы
             df = df.iloc[:, :]
@@ -123,3 +124,19 @@ async def filter_columns_group_by_date() -> List[str | int]:
     date = datetime.datetime.now().weekday()
     week_day = list(WEEK_DAYS[date])
     return [week_day[1], date]
+
+async def migrate_data_to_db():
+    from .send_schedule import get_week_schedule
+    if not await is_cache_empty():
+        print("Расписание уже сохранено в базу данных")
+        return
+
+    groups_dict = await update_groups_cache()
+    print("Начало сохранения данных в базу данных")
+    for group_name in groups_dict.keys():
+        try:
+            week_text = await get_week_schedule(group_name)
+            await save_cached_schedule(group_name, week_text)
+        except Exception as e:
+            print(f"Ошибка при сохранении данных для группы {group_name}: {e}")
+    print("Сохранение данных в базу данных завершено")
