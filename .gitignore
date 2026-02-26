@@ -6,7 +6,7 @@ venv/
 __pycache__/
 
 #Project-specific dirs/files
-schedules/exams/
+schedules/
 
 #Database
 *.db
