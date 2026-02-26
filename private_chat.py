@@ -66,9 +66,11 @@ async def send_tomorrow_schedule(callback: CallbackQuery) -> None:
 async def send_week_schedule(callback: CallbackQuery) -> None:
     group = await get_user_group(tg_id=callback.from_user.id)
 
-    schedule_text = await get_week_schedule(group=group)
+    schedule_text = await get_cached_schedule(group=group)
     if not group:
-        await callback.answer(text="Сначала введите группу в чат")
+        await callback.message.answer(text="Сначала введите группу в чат")
         return
-
+    if len(schedule_text) > 1024:
+        await callback.message.delete()
+        await callback.message.answer(text=schedule_text, reply_markup=keyboards.schedule_keyboard())
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{schedule_text}"),reply_markup=keyboards.schedule_keyboard())

@@ -1,187 +1,120 @@
 import pandas as pd
+import re
+import datetime
 from .schedule_manager import filter_columns_group, filter_columns_group_by_date, WEEK_DAYS
-from .upper_under_schedule_filter import get_upper_under_week_type
+from .upper_under_schedule_filter import filter as week_filter
 
 async def message_constructor(schedule: pd.DataFrame) -> str:
-    """Construct a message with the schedule information
-
-    Args:
-        schedule (pd.DataFrame): Schedule data
-
-    Returns:
-        str: Formatted schedule message
-    """
-    TABLE_LESSONS = ''
-    
-    # Handle empty DataFrames
     if schedule.empty:
-        return "Нет занятий"
-    
-    # Import the filter function to determine current week type
-    week_type = get_upper_under_week_type()
-    is_odd_week = week_type % 2 != 0  # True for 'II' week, False for 'I' week
-    
-    # Process each row in the DataFrame
-    # We need to handle pairs of rows (one for each week type)
-    i = 0
-    lesson_number = 1
-    while i < len(schedule):
+        return ""
+
+    table_lessons = []
+    processed_keys = set()
+
+    for i in range(len(schedule)):
+        row = schedule.iloc[i]
         try:
-            # Check if we have enough columns
-            if len(schedule.columns) >= 3:
-                # For pairs of rows, we take the one that matches the current week type
-                # Row i is for 'I' week, row i+1 is for 'II' week
-                if is_odd_week:  # 'II' week
-                    # Take row i+1 if it exists, otherwise row i
-                    row_index = i + 1 if i + 1 < len(schedule) else i
-                else:  # 'I' week
-                    # Take row i
-                    row_index = i
-                
-                subject = schedule.iloc[row_index, -3] if len(schedule.columns) >= 3 and not pd.isna(schedule.iloc[row_index, -3]) else ""
-                type_lesson = schedule.iloc[row_index, -2] if len(schedule.columns) >= 2 and not pd.isna(schedule.iloc[row_index, -2]) else ""
-                audience_raw = schedule.iloc[row_index, -1] if len(schedule.columns) >= 1 and not pd.isna(schedule.iloc[row_index, -1]) else ""
-                
-                # Skip if subject is empty
-                if not subject or pd.isna(subject) or str(subject).strip() == "":
-                    i += 2  # Skip both rows in the pair
-                    lesson_number += 1  # Still increment lesson number to maintain proper numbering
-                    continue
-                    
-                # Process audience information
-                audience_parts = str(audience_raw).split(' ')
-                audience = ""
-                if len(audience_parts) > 2:
-                    audience = audience_parts[2]
-                elif len(audience_parts) == 1 and audience_parts[0] != 'nan':
-                    audience = audience_parts[0]
-                    
-                # Only add to lessons if we have subject information
-                if subject and str(subject).strip() != "NaN" and str(subject).strip() != "nan":
-                    TABLE_LESSONS += f'{lesson_number}. {subject} ({type_lesson}) {audience}\n'
-                # Always increment lesson number to maintain proper numbering
-                lesson_number += 1
-                    
-                i += 2  # Move to the next pair of rows
-            else:
-                # Handle DataFrames with fewer than 3 columns
-                if len(schedule.columns) >= 1:
-                    subject = schedule.iloc[i, -1] if not pd.isna(schedule.iloc[i, -1]) else ""
-                    if subject and str(subject).strip() != "" and str(subject).strip() != "NaN" and str(subject).strip() != "nan":
-                        TABLE_LESSONS += f'{lesson_number}. {subject}\n'
-                    lesson_number += 1
-                i += 1
-        except IndexError:
-            # Skip rows that cause index errors
-            i += 1 if len(schedule.columns) < 3 else 2
-            lesson_number += 1
+            # Вычисляем номер пары: от 1 до 7
+            # Индексы: 2,3->1 пара; 4,5->2 пара ... 14,15->7 пара
+            original_idx = row.name
+            lesson_num = str(((original_idx - 2) % 14) // 2 + 1)
+
+            subject_raw = str(row.iloc[-4]).replace('\n', ' ').strip()
+            type_raw = str(row.iloc[-3]).replace('\n', ' ').strip()
+            aud_raw = str(row.iloc[-1]).replace('\n', ' ').strip()
+
+            # Пропускаем пустые ячейки
+            if subject_raw.lower() in ['nan', '', '-', 'none']:
+                continue
+
+            # Очистка названия и типа
+            subject = " ".join(dict.fromkeys(subject_raw.replace('.', ' ').split()))
+            l_type = " ".join(dict.fromkeys(type_raw.replace('(', '').replace(')', '').split()))
+
+            # Аудитория
+            match = re.search(r'(\d+-[А-Яа-яA-Za-z0-9-]+)|(корп\.\d+)', aud_raw)
+            audience = match.group(0) if match else aud_raw.replace('nan', '').strip()
+
+            # Сборка
+            type_str = f"({l_type})" if l_type else ""
+            aud_str = f" {audience}" if audience else ""
+            line = f"{lesson_num}. {subject} {type_str}{aud_str}"
+            line = " ".join(line.split())
+
+            # Защита от дублей (на случай если фильтр пропустил лишнюю строку)
+            key = f"{lesson_num}_{subject}"
+            if key not in processed_keys:
+                table_lessons.append(line)
+                processed_keys.add(key)
+        except:
             continue
-        except Exception:
-            # Skip rows with any other errors
-            i += 1 if len(schedule.columns) < 3 else 2
-            lesson_number += 1
-            continue
-            
-    return TABLE_LESSONS if TABLE_LESSONS else "Нет занятий"
+
+    return "\n".join(table_lessons)
 
 async def get_today_schedule(group: str) -> str:
-    """Возвращает расписание на сегодня для заданной группы
+    # Используем твою функцию получения индекса
+    date_info = await filter_columns_group_by_date()
+    _date_today_idx = int(date_info[0])
     
-    Args:
-        group (str): Название группы для фильтрации
-        
-    Returns:
-        str: Строковое представление расписания на сегодня
-    """
-    date_list = await filter_columns_group_by_date()
-    _date_today = int(date_list[0])
-    if _date_today > 86:
+    if _date_today_idx > 86: # Воскресенье или за пределами
         return "Сегодня выходной. Занятия не проводятся :)"
 
-    schedule_today = await filter_columns_group(group)
-    # Slice by date first, then apply week filter
-    # Make sure we don't go out of bounds
-    if _date_today < len(schedule_today):
-        end_index = min(_date_today + 14, len(schedule_today))
-        schedule_today = schedule_today.iloc[_date_today:end_index]
-    else:
-        schedule_today = schedule_today.iloc[0:0]  # Empty DataFrame
-
-    return await message_constructor(schedule_today)
-
-async def get_tomorrow_schedule(group) -> str:
-    """Возвращает расписание на завтра для заданной группы
+    df = await filter_columns_group(group)
+    # Берем блок строк на 1 день (обычно 14 строк для I/II недель)
+    day_df = df.iloc[_date_today_idx : _date_today_idx + 14]
+    day_df = await week_filter(day_df)
     
-    Args:
-        group (str): Название группы для фильтрации
+    result = await message_constructor(day_df)
+    return result if result else "Сегодня выходной. Занятия не проводятся :)"
+
+async def get_tomorrow_schedule(group: str) -> str:
+    """Расписание на завтра"""
+    # 0 - пн, 6 - вс
+    now = datetime.datetime.now()
+    tomorrow_weekday = (now.weekday() + 1) % 7
+    
+    if tomorrow_weekday == 6:
+        return "Завтра воскресенье. Занятия не проводятся :)"
+
+    # Находим индекс строки для завтрашнего дня в WEEK_DAYS
+    day_info = WEEK_DAYS.get(tomorrow_weekday)
+    if not day_info:
+        return "На завтра расписание не найдено :("
         
-    Returns:
-        str: Строковое представление расписания на завтра
-    """
-    date_now = await filter_columns_group_by_date()
-    _date_tomorrow = int(date_now[1]) + 1
-    if _date_tomorrow == 6:
-        return "Завтра выходной. Занятия не проводятся :)"
-    elif _date_tomorrow == 7:
-        _date_tomorrow = 0
+    start_row = day_info[1]
+    df = await filter_columns_group(group)
     
-    schedule_tomorrow = await filter_columns_group(group)
-    # Slice by date first, then apply week filter
-    day_start = WEEK_DAYS[_date_tomorrow][1]
-    # Make sure we don't go out of bounds
-    if day_start < len(schedule_tomorrow):
-        end_index = min(day_start + 14, len(schedule_tomorrow))
-        schedule_tomorrow = schedule_tomorrow.iloc[day_start:end_index]
-    else:
-        schedule_tomorrow = schedule_tomorrow.iloc[0:0]  # Empty DataFrame
+    # Срез на завтра
+    day_df = df.iloc[start_row : start_row + 14]
+    
+    # Применяем фильтр недели
+    # Примечание: если сегодня воскресенье, week_filter уже поймет, 
+    # что идет текущая календарная неделя (ISO)
+    day_df = await week_filter(day_df)
+    
+    result = await message_constructor(day_df)
+    return result if result else "Завтра выходной. Занятия не проводятся :)"
 
-    return await message_constructor(schedule_tomorrow)
-    
-async def get_week_schedule(group) -> str:
-    """Возвращает расписание на неделю для заданной группы
-    
-    Args:
-        group (str): Название группы для фильтрации
+async def get_week_schedule(group: str) -> str:
+    result = []
+    for day_idx, day_info in WEEK_DAYS.items():
+        day_name = day_info[0]
+        start_row = day_info[1]
         
-    Returns:
-        str: Строковое представление расписания на неделю
-    """
-    date_name = list(WEEK_DAYS.keys())
-    result = ""
-    for i in date_name:
-        day = WEEK_DAYS[i][0]
-        day_schedule = WEEK_DAYS[i][1]
-        # Check if next day exists to avoid KeyError
-        if i+1 in WEEK_DAYS:
-            next_day = WEEK_DAYS[i+1]
-            if next_day == 6:
-                schedule_week = await filter_columns_group(group)
-                # Slice by date first, then apply week filter
-                # Make sure we don't go out of bounds
-                if day_schedule < len(schedule_week):
-                    schedule_week = schedule_week.iloc[day_schedule:]
-                else:
-                    schedule_week = schedule_week.iloc[0:0]  # Empty DataFrame
-                # schedule_week = await filter(df=schedule_week)
-            else:
-                schedule_week = await filter_columns_group(group)
-                # Slice by date first, then apply week filter
-                # Make sure we don't go out of bounds
-                if day_schedule < len(schedule_week):
-                    end_index = min(next_day[1], len(schedule_week))
-                    schedule_week = schedule_week.iloc[day_schedule:end_index]
-                else:
-                    schedule_week = schedule_week.iloc[0:0]  # Empty DataFrame
-                # schedule_week = await filter(df=schedule_week)
+        if day_idx < 5:
+            end_row = WEEK_DAYS[day_idx + 1][1]
         else:
-            # Handle the case when there's no next day (Saturday)
-            schedule_week = await filter_columns_group(group)
-            # Slice by date first, then apply week filter
-            # Make sure we don't go out of bounds
-            if day_schedule < len(schedule_week):
-                schedule_week = schedule_week.iloc[day_schedule:]
-            else:
-                schedule_week = schedule_week.iloc[0:0]  # Empty DataFrame
-            # schedule_week = await filter(df=schedule_week)
-        result += f'{day}\n{await message_constructor(schedule_week)}\n'
-    return result
+            end_row = start_row + 14
+
+        df = await filter_columns_group(group)
+        day_df = df.iloc[start_row:end_row]
+        day_df = await week_filter(day_df)
+        
+        day_schedule = await message_constructor(day_df)
+        
+        if not day_schedule:
+            result.append(f"{day_name}\nВыходной. Занятия не проводятся :)\n")
+        else:
+            result.append(f"{day_name}\n{day_schedule}\n")
+            
+    return "\n".join(result)
