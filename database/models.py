@@ -17,6 +17,12 @@ class User(Base):
     username: Mapped[str] = mapped_column(String, nullable=True)
     group: Mapped[str] = mapped_column(String, nullable=True)
 
+class CacheSchedule(Base):
+    __tablename__ = 'cached_schedules'
+
+    group_name: Mapped[str] = mapped_column(String, primary_key=True)
+    schedule_data: Mapped[str] = mapped_column(String)
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
