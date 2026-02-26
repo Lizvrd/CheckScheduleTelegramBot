@@ -4,14 +4,13 @@ from aiogram.fsm.storage.memory import MemoryStorage
 import logging, sys
 from configBot import bot
 from private_chat import privateChatRouter
-from tables.schedule_manager import update_groups_cache, migrate_data_to_db
+from tables.schedule_manager import migrate_data_to_db
 from database.models import async_main
 
 dp = Dispatcher(storage=MemoryStorage())
 
 async def main() -> None:
     await async_main()
-    await update_groups_cache()
     await migrate_data_to_db()
     dp.include_router(privateChatRouter)
     await dp.start_polling(bot)
