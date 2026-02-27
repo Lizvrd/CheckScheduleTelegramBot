@@ -1,5 +1,5 @@
 from aiogram import Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 from aiogram import F
 from configBot import bot
@@ -28,7 +28,7 @@ async def startChat(message: Message) -> None:
 @privateChatRouter.message(F.text)
 async def save_group(message: Message) -> None:    
     user_text = message.text
-    
+
     if await check_exist_groups(user_text=user_text) == False:
         await bot.send_photo(message.from_user.id, photo=os.getenv("NOT_FOUND_GROUP_LINK"), caption=f"🦊Группа <i>{user_text}</i> не найдена. Возможно, что вы ввели неправильное название группы.\nПроверьте правильность ввода.\nПримеры: Б12-345-6\nб12-345-6")
         return
@@ -36,8 +36,8 @@ async def save_group(message: Message) -> None:
     await set_user(tg_id=message.from_user.id, username=message.from_user.username)
     await update_user_group(tg_id=message.from_user.id, group=user_text)
     
-    await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"🦊Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nЯ открытый проект — мой код на GitHub: <a href='https://github.com/Lizvrd/CheckScheduleTelegramBot'>GitHub</a>!  \nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())    
-    
+    await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"🦊Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())
+
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("GROUP_IS_FOUND_LINK"),caption="🦊Для получения расписания нужно выбрать режим работы. Выбери режим вывода:"), reply_markup=keyboards.choice_mode_keyboard())
@@ -74,3 +74,11 @@ async def send_week_schedule(callback: CallbackQuery) -> None:
         await callback.message.delete()
         await callback.message.answer(text=schedule_text, reply_markup=keyboards.schedule_keyboard())
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{schedule_text}"),reply_markup=keyboards.schedule_keyboard())
+
+@privateChatRouter.callback_query(lambda call: call.data == "settings")
+async def show_settings(callback: CallbackQuery):
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SETTINGS'),caption="Вы находитесь в настройках бота. Выберите что хотите изменить"), reply_markup=keyboards.settings_keyboard())
+  
+@privateChatRouter.callback_query(lambda call: call.data == "notification_mode")
+async def notification_mode(callback: CallbackQuery):
+    await callback.message.answer(text="Настройки уведомленийn\n\nСписок настроек:\n", reply_markup=keyboards.notify_settings())
