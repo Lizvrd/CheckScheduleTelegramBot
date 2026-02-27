@@ -52,7 +52,6 @@ async def message_constructor(schedule: pd.DataFrame) -> str:
     return "\n".join(table_lessons)
 
 async def get_today_schedule(group: str) -> str:
-    # Используем твою функцию получения индекса
     date_info = await filter_columns_group_by_date()
     _date_today_idx = int(date_info[0])
     
