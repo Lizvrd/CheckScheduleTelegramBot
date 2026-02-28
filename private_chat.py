@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 import os
 from aiogram.fsm.context import FSMContext
 from tables.check_exist_groups import check_exist_groups
-from tables.send_schedule import get_today_schedule, get_tomorrow_schedule, get_week_schedule
-from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule
+from tables.send_schedule import get_today_schedule, get_tomorrow_schedule
+from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule, get_user_settings, edit_settings, cycle_edit_time
 
 load_dotenv()
 
@@ -70,7 +70,7 @@ async def send_week_schedule(callback: CallbackQuery) -> None:
     if not group:
         await callback.message.answer(text="Сначала введите группу в чат")
         return
-    if len(schedule_text) > 1024:
+    if len(schedule_text) > 1024: # Max lenght telegram photo caption
         await callback.message.delete()
         await callback.message.answer(text=schedule_text, reply_markup=keyboards.schedule_keyboard())
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{schedule_text}"),reply_markup=keyboards.schedule_keyboard())
@@ -80,5 +80,43 @@ async def show_settings(callback: CallbackQuery):
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SETTINGS'),caption="Вы находитесь в настройках бота. Выберите что хотите изменить"), reply_markup=keyboards.settings_keyboard())
   
 @privateChatRouter.callback_query(lambda call: call.data == "notification_mode")
-async def notification_mode(callback: CallbackQuery):
-    await callback.message.answer(text="Настройки уведомленийn\n\nСписок настроек:\n", reply_markup=keyboards.notify_settings())
+async def show_notifications_settings(callback: CallbackQuery):
+    settings = await get_user_settings(tg_id=callback.from_user.id)
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SETTINGS'),caption="🔔 Управление уведомлениями\n\nНастрой Кванта под свой ритм жизни, чтобы не пропускать важное и не отвлекаться на лишнее:\n🔹 Напоминания о парах — пришлю пуш с кабинетом и предметом до начала занятия.\n🔹 Время — выбери, за сколько минут тебе нужно успеть добежать до аудитории.\n🔹 Сводка на день — утром пришлю краткий план всех твоих пар на сегодня.\n🔹 План на завтра — вечером напомню, во сколько завтра первая пара, чтобы ты знал, во сколько ставить будильник.\n\nНастрой кнопки ниже под себя:"), reply_markup=keyboards.notify_settings(is_active=settings.is_active, time_offset=settings.time_offset, morning=settings.morning_summary, evening=settings.evening_summary))
+    await callback.answer()
+
+@privateChatRouter.callback_query(lambda call: call.data.startswith("notif_"))
+async def edit_toggle_notif(callback: CallbackQuery):
+    if callback.data == "notif_time_cycle":
+        return await edit_time_notif(callback)
+    
+    settings = await get_user_settings(tg_id=callback.from_user.id)
+    
+    if callback.data == "notif_main_toggle":
+        await edit_settings(tg_id=callback.from_user.id, key="is_active", value=not settings.is_active)
+    
+    elif callback.data == "notif_morning_toggle":
+        await edit_settings(tg_id=callback.from_user.id, key="morning_summary", value=not settings.morning_summary)
+    
+    elif callback.data == "notif_evening_toggle":
+        await edit_settings(tg_id=callback.from_user.id, key="evening_summary", value=not settings.evening_summary)
+    
+    new_settings = await get_user_settings(tg_id=callback.from_user.id)
+    
+    await callback.message.edit_reply_markup(reply_markup=keyboards.notify_settings(is_active=new_settings.is_active, morning=new_settings.morning_summary, evening=new_settings.evening_summary, time_offset=new_settings.time_offset))
+    await callback.answer("Получилось! Настройки уведомлений изменились✅")
+        
+@privateChatRouter.callback_query(lambda call: call.data == "notif_time_cycle")
+async def edit_time_notif(callback: CallbackQuery):
+    new_time = await cycle_edit_time(callback.from_user.id)
+    settings = await get_user_settings(callback.from_user.id)
+    
+    await callback.message.edit_reply_markup(reply_markup=keyboards.notify_settings(is_active=settings.is_active, time_offset=new_time, morning=settings.morning_summary, evening=settings.evening_summary))
+    
+    await callback.answer(f"Изменено, напомним за {new_time} минут")
+    
+@privateChatRouter.callback_query(lambda call: call.data == "starter_menu")
+async def return_to_start_menu(callback: CallbackQuery):
+    user = await get_user_group(tg_id=callback.from_user.id)
+    
+    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SAY_HELLO_PHOTO_LINK'),caption=f"🦊Привет, студент!\nРад снова тебя видеть .\nТвоя сохраненная группа: <i>{user}</i>.\n\nЕсли ты хочешь изменить свою группу, напиши новое название группы.\n\nПримеры: Б12-345-6\nб12-345-6", reply_markup=keyboards.choice_mode_keyboard()))

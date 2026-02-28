@@ -22,7 +22,7 @@ def settings_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Уведомления", callback_data="notification_mode")],
         # [InlineKeyboardButton(text="Выбрать язык", callback_data="language_mode")],
-        [InlineKeyboardButton(text="Вернуться", callback_data="starter_menu")],
+        [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")],
     ])
 
 def notify_settings(is_active, time_offset, morning, evening):
@@ -36,6 +36,5 @@ def notify_settings(is_active, time_offset, morning, evening):
         [InlineKeyboardButton(text=f"⏰ Напомнить за: {time_offset} мин", callback_data="notif_time_cycle")],
         [InlineKeyboardButton(text=f"🌅 Сводка на день: {morning_emoji}", callback_data="notif_morning_toggle")],
         [InlineKeyboardButton(text=f"🌃 План на завтра: {evening_emoji}", callback_data="notif_evening_toggle")],
-        [InlineKeyboardButton(text="🧪 Тестовое уведомление", callback_data="notif_test")],
-        [InlineKeyboardButton(text="🔙 Назад в настройки", callback_data="back_to_settings")]
+        [InlineKeyboardButton(text="🔙 Назад в настройки", callback_data="settings")]
     ])
