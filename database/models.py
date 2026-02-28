@@ -23,7 +23,7 @@ class CacheSchedule(Base):
     group_name: Mapped[str] = mapped_column(String, primary_key=True)
     schedule_data: Mapped[str] = mapped_column(String)
 
-class Settings(Base):
+class UserSettings(Base):
     __tablename__ = 'user_settings'
     
     telegram_id: Mapped[int] = mapped_column(BigInteger,primary_key=True)
