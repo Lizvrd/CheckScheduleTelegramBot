@@ -25,7 +25,7 @@ def settings_keyboard():
         [InlineKeyboardButton(text="Вернуться", callback_data="starter_menu")],
     ])
 
-def notify_settings(is_active = True, time_offset = 15, morning =False, evening=True):
+def notify_settings(is_active, time_offset, morning, evening):
     # Формируем текст для кнопок на основе данных из БД
     main_btn_text = "✅ Уведомления: Активны" if is_active else "❌ Уведомления: Выключены"
     morning_emoji = "✅" if morning else "❌"
