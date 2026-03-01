@@ -18,29 +18,25 @@ async def send_morning_today_report():
             try:
                 schedule_text = await get_today_schedule(group=group)
                 if "Сегодня выходной. Занятия не проводятся :)":
-                    await bot.send_message(chat_id=settings.telegram_id, text=f"Доброе утро! Квант проснулся раньше тебя и проанализировал расписание на сегодня. Вот что я раскопал:\n\n{schedule_text}")
+                    await bot.send_message(chat_id=settings.telegram_id, text=f"🦊 Доброе утро! Квант проснулся раньше тебя и проанализировал расписание на сегодня. Вот что я раскопал:\n\n{schedule_text}")
                     await asyncio.sleep(0.05)
             except Exception as e:
                 print(f'{settings.telegram_id}: {e}')
                 
 async def send_evening_report():
-    print("Запуск рассылки")
     day_now = datetime.now().weekday()
     if day_now == 6:
         day_now = WEEK_DAYS[day_now%6][0] #Берем название дня недели исходя из словаря 
     
     users_data = await get_users_for_notifications()
-    print(f"Получено данных: {len(users_data)}")
     for row in users_data:
         settings = row[0]
         group = row[1]
-        print(f"Проверяю юзера {settings.telegram_id}:\nis_active={settings.is_active},\nevening={settings.evening_summary}\ngroup={group}")
         if settings.evening_summary and group:
             try:
                 schedule_text = await get_tomorrow_schedule(group=group)
                 if "Завтра выходной. Занятия не проводятся :)":
-                    await bot.send_message(chat_id=settings.telegram_id, text=f"Снова привет! Я подготовил для тебя план пар на завтра, как ты и просил:\n\n{schedule_text}")
-                    print(f"Сообщение было отправлено юзеру: {settings.telegram_id}")
+                    await bot.send_message(chat_id=settings.telegram_id, text=f"🦊 Снова привет! Я подготовил для тебя план пар на завтра, как ты и просил:\n\n{schedule_text}")
                     await asyncio.sleep(0.05)
             except Exception as e:
                 print(f'{settings.telegram_id}: {e}')
@@ -53,4 +49,4 @@ async def setup_scheduler():
     scheduler.add_job(send_evening_report, 'cron',hour=20,minute=00)
     
     scheduler.start()
-    print("Планировщик запущен (UTC+4)\n🦊Квант вышел на дежурство")
+    print("Планировщик запущен (UTC+4)\n🦊 Квант вышел на дежурство")
