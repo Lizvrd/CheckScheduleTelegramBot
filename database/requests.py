@@ -72,17 +72,12 @@ async def get_users_for_notifications():
         result = await session.execute(query)
         return result.all()
       
-async def get_all_unique_groups_users(telegram_id: int):
+async def get_all_unique_groups_users():
     async with async_session() as session:
-        query = select(User).where(User.group != None).distinct()
+        query = select(User.group).where(User.group != None).distinct()
         result = await session.execute(query)
-        return [row[0] for row in result.all()]
+        return result.scalars().all()
     
-async def clear_lessons():
-    async with async_session() as session:
-        await session.execute(delete(Lesson))
-        await session.commit()
-        
 async def add_lesson_to_db(group_name, day_name, start_time, subject, audience, week_type):
     async with async_session() as session:
         lesson = Lesson(
@@ -95,3 +90,22 @@ async def add_lesson_to_db(group_name, day_name, start_time, subject, audience, 
         )
         session.add(lesson)
         await session.commit()
+
+# Очищаем все данные из таблиц с сохраненными расписаниями и парами
+async def clean_all_schedules():
+    async with async_session() as session:
+        await session.execute(delete(CacheSchedule))
+        await session.execute(delete(Lesson))
+        await session.commit()
+        
+async def get_lesson_for_notification(group: str, day: str, week_type: int, time_str: str):
+    """Поиск конкретного урока для уведомления"""
+    async with async_session() as session:
+        query = select(Lesson).where(
+            Lesson.group_name == group,
+            Lesson.day_name == day,
+            Lesson.week_type == week_type,
+            Lesson.start_time == time_str
+        )
+        result = await session.execute(query)
+        return result.scalar()
