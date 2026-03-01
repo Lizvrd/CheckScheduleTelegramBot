@@ -114,9 +114,3 @@ async def edit_time_notif(callback: CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=keyboards.notify_settings(is_active=settings.is_active, time_offset=new_time, morning=settings.morning_summary, evening=settings.evening_summary))
     
     await callback.answer(f"Изменено, напомним за {new_time} минут")
-    
-@privateChatRouter.callback_query(lambda call: call.data == "starter_menu")
-async def return_to_start_menu(callback: CallbackQuery):
-    user = await get_user_group(tg_id=callback.from_user.id)
-    
-    await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SAY_HELLO_PHOTO_LINK'),caption=f"🦊Привет, студент!\nРад снова тебя видеть .\nТвоя сохраненная группа: <i>{user}</i>.\n\nЕсли ты хочешь изменить свою группу, напиши новое название группы.\n\nПримеры: Б12-345-6\nб12-345-6", reply_markup=keyboards.choice_mode_keyboard()))

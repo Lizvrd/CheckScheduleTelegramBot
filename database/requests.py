@@ -64,3 +64,10 @@ async def cycle_edit_time(tg_id: int):
             settings.time_offset = new_time
             await session.commit()
             return new_time
+
+#Notifications        
+async def get_users_for_notifications():
+    async with async_session() as session:
+        query = select(UserSettings, User.group).join(User, User.telegram_id == UserSettings.telegram_id).where(UserSettings.is_active == True)
+        result = await session.execute(query)
+        return result.all()
