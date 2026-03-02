@@ -97,6 +97,17 @@ async def clean_all_schedules():
         await session.execute(delete(CacheSchedule))
         await session.execute(delete(Lesson))
         await session.commit()
+
+async def get_lessons_for_group_day(group: str, day: str, week_type: int):
+    """Получает все пары группы на конкретный день для поиска первой пары"""
+    async with async_session() as session:
+        query = select(Lesson).where(
+            Lesson.group_name == group,
+            Lesson.day_name == day,
+            Lesson.week_type == week_type
+        )
+        result = await session.execute(query)
+        return result.scalars().all()
         
 async def get_lesson_for_notification(group: str, day: str, week_type: int, time_str: str):
     """Поиск конкретного урока для уведомления"""

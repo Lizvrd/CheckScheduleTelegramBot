@@ -1,4 +1,4 @@
-from database.requests import get_users_for_notifications, get_lesson_for_notification
+from database.requests import get_users_for_notifications, get_lesson_for_notification, get_lessons_for_group_day
 import asyncio
 from configBot import bot
 from tables.send_schedule import get_today_schedule, get_tomorrow_schedule
@@ -53,13 +53,30 @@ async def notify_about_soon_subject():
     day_name = WEEK_DAYS[now.weekday()-1][0] if now.weekday() == 6 else WEEK_DAYS[now.weekday()][0]
     
     users = await get_users_for_notifications()
+    first_lesson_cache = {}
+    
     for settings, group in users:
+        if group not in first_lesson_cache:
+            all_lessons = await get_lessons_for_group_day(group=group, day=day_name, week_type=curr_week)
+            if all_lessons:
+                sorted_lessons = sorted(all_lessons, key=lambda time: time.start_time)
+                first_lesson_cache[group] = sorted_lessons[0].start_time
+            else:
+                first_lesson_cache[group] = None
+        
+        first_lesson_time = first_lesson_cache[group]
+        
+        if not first_lesson_time:
+            continue
+                
         # Время пары = сейчас + оффсет (30, 60 и т.д.)
         target_time_obj = now + timedelta(minutes=settings.time_offset)
         target_time_str = target_time_obj.strftime("%H:%M")
-        lesson = await get_lesson_for_notification(group=group, day=day_name, week_type=curr_week, time_str=target_time_str)
-        if lesson:
-            await bot.send_message(settings.telegram_id, f"🔔 Через {settings.time_offset} мин начнется пара: {lesson.subject} (ауд. {lesson.audience})")
+        
+        if target_time_str == first_lesson_time:
+            lesson = await get_lesson_for_notification(group=group, day=day_name, week_type=curr_week, time_str=target_time_str)
+            if lesson:
+                await bot.send_message(settings.telegram_id, f"🔔 Через {settings.time_offset} мин начнется пара: {lesson.subject} (ауд. {lesson.audience})")
     
 # сетап всех уведомлений по времени 
 async def setup_scheduler():
