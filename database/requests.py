@@ -78,18 +78,28 @@ async def get_all_unique_groups_users():
         result = await session.execute(query)
         return result.scalars().all()
     
-async def add_lesson_to_db(group_name, day_name, start_time, subject, audience, week_type):
+async def add_lesson_to_db(group_name, day_name, start_time, subject, audience, week_type, teacher):
     async with async_session() as session:
         lesson = Lesson(
             group_name = group_name,
             day_name = day_name,
             start_time = start_time,
             subject = subject,
+            teacher = teacher,
             audience = audience,
             week_type = week_type
         )
         session.add(lesson)
         await session.commit()
+
+# Where is teacher
+async def find_teacher(teacher_name: str, day: str, week_type: int):
+    async with async_session() as session:
+        query = select(Lesson).where(Lesson.teacher.ilike(f"%{teacher_name}%"),Lesson.day_name == day, Lesson.week_type == week_type).order_by(Lesson.start_time)
+        
+        result = await session.execute(query)
+        return result.scalars().all()
+        
 
 # Очищаем все данные из таблиц с сохраненными расписаниями и парами
 async def clean_all_schedules():
