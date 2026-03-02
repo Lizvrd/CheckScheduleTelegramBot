@@ -32,6 +32,17 @@ class UserSettings(Base):
     morning_summary: Mapped[bool] = mapped_column(Boolean, default=False)
     evening_summary: Mapped[bool] = mapped_column(Boolean, default=True)
 
+class Lesson(Base):
+    __tablename__ = 'lessons'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group_name: Mapped[str] = mapped_column(String)
+    day_name: Mapped[str] = mapped_column(String)
+    start_time: Mapped[str] = mapped_column(String)
+    subject: Mapped[str] = mapped_column(String)
+    audience: Mapped[str] = mapped_column(String)
+    week_type: Mapped[int] = mapped_column(Integer)
+    
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

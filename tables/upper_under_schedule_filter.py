@@ -2,37 +2,27 @@ import pandas as pd
 from datetime import datetime
 
 def get_upper_under_week_type() -> int:
-    # 26.02.2026 — это 9-я неделя года (нечетная)
-    today = datetime.now()
-    return datetime.isocalendar(today)[1]
+    # ISO-неделя: 1, 3, 5... (Нечетная) -> Тип 1 (I)
+    # ISO-неделя: 2, 4, 6... (Четная) -> Тип 2 (II)
+    week_num = datetime.now().isocalendar()[1]
+    return 1 if week_num % 2 != 0 else 2
 
-async def filter(df: pd.DataFrame):
+async def filter(df: pd.DataFrame, week_type: int = None):
     if df.empty:
         return df
         
-    week_num = get_upper_under_week_type()
-    # Настраиваем: остаток 1 (нечетная) -> I неделя, остаток 0 (четная) -> II неделя
-    # Если недели в боте перепутаны, просто поменяй 'I' на 'II'
-    target_week_type = 'I' if week_num % 2 != 0 else 'II'
-    
-    # В твоих файлах: 
-    # Понедельник начинается со строки 2, Вторник с 16 и т.д. (шаг 14)
-    # Нам нужно понять: текущая строка — это верхняя часть пары или нижняя?
+    target_type = week_type if week_type is not None else get_upper_under_week_type()
     
     def is_target_row(row_idx):
-        # Позиция строки внутри блока дня (0-13)
-        # Так как WEEK_DAYS[0] = 2, мы вычитаем смещение, чтобы начать отсчет с 0
-        relative_idx = (row_idx - 2) % 14
+        # relative_idx: 0, 1, 2, 3... внутри дня
+        relative_idx = (int(row_idx) - 2) % 14
         
-        # relative_idx: 0, 2, 4, 6, 8, 10, 12 — это всегда 'I' неделя (верхняя строка)
-        # relative_idx: 1, 3, 5, 7, 9, 11, 13 — это всегда 'II' неделя (нижняя строка)
-        
-        if target_week_type == 'II':
+        if target_type == 1: # НЕДЕЛЯ I (Нечетная года)
+            # Если раньше было == 0 и не работало, меняем на != 0
+            # Теперь она будет брать НИЖНЮЮ строку из пары в Pandas
+            return relative_idx % 2 != 0 
+        else: # НЕДЕЛЯ II (Четная года)
+            # А тут наоборот — ВЕРХНЮЮ
             return relative_idx % 2 == 0
-        else:
-            return relative_idx % 2 != 0
 
-    # Применяем фильтр на основе относительного индекса
-    filtered = df[df.index.map(is_target_row)]
-    
-    return filtered
+    return df[df.index.map(is_target_row)]
