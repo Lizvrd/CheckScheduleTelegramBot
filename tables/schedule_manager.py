@@ -5,8 +5,7 @@ import datetime
 from typing import Dict, List
 import asyncio
 from .upper_under_schedule_filter import filter
-from database.requests import save_cached_schedule, is_cache_empty
-
+from database.requests import *
 WEEK_DAYS = {
     0: ['Понедельник', 2],
     1: ['Вторник', 16],
@@ -140,3 +139,47 @@ async def migrate_data_to_db():
         except Exception as e:
             print(f"Ошибка при сохранении данных для группы {group_name}: {e}")
     print("Сохранение данных в базу данных завершено")
+    
+# Полностью замени функцию rebuild_all_lessons_cache
+
+async def rebuild_all_lessons_cache():
+    from database.requests import clean_all_schedules, save_cached_schedule, add_lesson_to_db
+    from .send_schedule import message_constructor, filter_columns_group, get_week_schedule
+    from .upper_under_schedule_filter import filter as week_filter
+    import datetime
+    
+    await clean_all_schedules()
+    groups_dict = await update_groups_cache() 
+    
+    now = datetime.datetime.now()
+    
+    # ЖЕСТКАЯ ЛОГИКА:
+    # Если сегодня ВС (6), берем +1 день (ПН).
+    # В остальные дни (даже ПН) берем текущую неделю.
+    if now.weekday() == 6:
+        target_date = now + datetime.timedelta(days=1)
+    else:
+        target_date = now
+    
+    target_week_num = target_date.isocalendar()[1]
+    target_week_type = 1 if target_week_num % 2 != 0 else 2
+    
+    print(f"--- ОБНОВЛЕНИЕ ---")
+    print(f"Сегодня: {now.strftime('%A')}, Неделя года: {now.isocalendar()[1]}")
+    print(f"Целевая неделя для кэша: {target_week_num} (Тип {target_week_type})")
+    
+    for group_name in groups_dict.keys():
+        try:
+            # ТУТ СЕКРЕТ: Мы ПРИНУДИТЕЛЬНО передаем target_week_type
+            week_text = await get_week_schedule(group_name, week_type=target_week_type)
+            await save_cached_schedule(group_name, week_text)
+            
+            # В Lesson пишем всё
+            df = await filter_columns_group(group_name)
+            for day_idx, day_info in WEEK_DAYS.items():
+                day_df = df.iloc[day_info[1] : day_info[1] + 14]
+                for w_type in [1, 2]:
+                    f_df = await week_filter(day_df, week_type=w_type)
+                    await message_constructor(f_df, save_to_db=True, group=group_name, day=day_info[0], week_type=w_type)
+        except Exception as e:
+            print(f"Ошибка {group_name}: {e}")

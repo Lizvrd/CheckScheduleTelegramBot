@@ -1,8 +1,7 @@
 import os
 async def rename_xls_to_xlsx(dir: str) -> None:
-    
-        for root, dirs, files in os.walk('schedules/'):
-            for root, dirs, files in os.walk(dir):
+        for root, _, files in os.walk('schedules/'):
+            for root, _, files in os.walk(dir):
                 for file in files:
     
                     if file.endswith('.xls'):

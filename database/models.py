@@ -1,5 +1,5 @@
 import asyncio
-from sqlalchemy import String, BigInteger, Integer, Column, ForeignKey
+from sqlalchemy import String, BigInteger, Integer, Column, ForeignKey, Boolean
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncAttrs, async_sessionmaker
 
@@ -23,6 +23,26 @@ class CacheSchedule(Base):
     group_name: Mapped[str] = mapped_column(String, primary_key=True)
     schedule_data: Mapped[str] = mapped_column(String)
 
+class UserSettings(Base):
+    __tablename__ = 'user_settings'
+    
+    telegram_id: Mapped[int] = mapped_column(BigInteger,primary_key=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    time_offset: Mapped[int] = mapped_column(Integer, default=60)
+    morning_summary: Mapped[bool] = mapped_column(Boolean, default=False)
+    evening_summary: Mapped[bool] = mapped_column(Boolean, default=True)
+
+class Lesson(Base):
+    __tablename__ = 'lessons'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group_name: Mapped[str] = mapped_column(String)
+    day_name: Mapped[str] = mapped_column(String)
+    start_time: Mapped[str] = mapped_column(String)
+    subject: Mapped[str] = mapped_column(String)
+    audience: Mapped[str] = mapped_column(String)
+    week_type: Mapped[int] = mapped_column(Integer)
+    
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
