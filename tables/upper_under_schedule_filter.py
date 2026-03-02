@@ -7,7 +7,7 @@ def get_upper_under_week_type() -> int:
     week_num = datetime.now().isocalendar()[1]
     return 1 if week_num % 2 != 0 else 2
 
-async def filter(df: pd.DataFrame, week_type: int = None):
+async def filter(df: pd.DataFrame, week_type: int = None) -> pd.DataFrame:
     if df.empty:
         return df
         

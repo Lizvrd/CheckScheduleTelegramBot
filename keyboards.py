@@ -10,7 +10,8 @@ def choice_mode_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Расписание на сегодня", callback_data="today")],
         [InlineKeyboardButton(text="Расписание на завтра", callback_data="tomorrow")],
-        [InlineKeyboardButton(text="Расписание на неделю", callback_data="week")]
+        [InlineKeyboardButton(text="Расписание на неделю", callback_data="week")],
+        [InlineKeyboardButton(text="🔎 Найти преподавателя", callback_data="find_teacher")]
     ])
 
 def schedule_keyboard():
@@ -37,4 +38,9 @@ def notify_settings(is_active, time_offset, morning, evening):
         [InlineKeyboardButton(text=f"🌅 Сводка на день: {morning_emoji}", callback_data="notif_morning_toggle")],
         [InlineKeyboardButton(text=f"🌃 План на завтра: {evening_emoji}", callback_data="notif_evening_toggle")],
         [InlineKeyboardButton(text="🔙 Назад в настройки", callback_data="settings")]
+    ])
+    
+def where_is_teacher_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        
     ])

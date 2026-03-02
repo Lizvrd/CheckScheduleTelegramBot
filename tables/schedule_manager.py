@@ -18,7 +18,7 @@ WEEK_DAYS = {
 COUNT_LESSONS_DAY = 7
 
 
-def save_groups_sheets_from_file(dir: str)->Dict[str, str]:
+def save_groups_sheets_from_file(dir: str) -> Dict[str, str]:
     """Сохранение путей к файлу и листа по названию группы в шапке документа
     Args:
         dir (str): директория с файлами. по дефолту schedules/semester
@@ -60,7 +60,7 @@ def save_groups_sheets_from_file(dir: str)->Dict[str, str]:
     
     return groups
 
-async def update_groups_cache():
+async def update_groups_cache() -> Dict[str, str]:
     """Обновление кэша групп
     
     Эта функция обновляет глобальную переменную groups,
@@ -124,7 +124,7 @@ async def filter_columns_group_by_date() -> List[str | int]:
     week_day = list(WEEK_DAYS[date])
     return [week_day[1], date]
 
-async def migrate_data_to_db():
+async def migrate_data_to_db() -> None:
     from .send_schedule import get_week_schedule
     if not await is_cache_empty():
         print("Расписание уже сохранено в базу данных")
@@ -142,7 +142,7 @@ async def migrate_data_to_db():
     
 # Полностью замени функцию rebuild_all_lessons_cache
 
-async def rebuild_all_lessons_cache():
+async def rebuild_all_lessons_cache() -> None:
     from database.requests import clean_all_schedules, save_cached_schedule, add_lesson_to_db
     from .send_schedule import message_constructor, filter_columns_group, get_week_schedule
     from .upper_under_schedule_filter import filter as week_filter

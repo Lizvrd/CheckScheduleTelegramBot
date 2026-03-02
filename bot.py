@@ -7,6 +7,7 @@ from private_chat import privateChatRouter
 from tables.schedule_manager import rebuild_all_lessons_cache
 from database.models import async_main
 from utils.send_notify import setup_scheduler
+
 dp = Dispatcher(storage=MemoryStorage())
 
 async def main() -> None:

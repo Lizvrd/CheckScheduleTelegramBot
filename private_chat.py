@@ -6,13 +6,13 @@ from configBot import bot
 import keyboards
 from dotenv import load_dotenv
 import os
-from aiogram.fsm.context import FSMContext
 from tables.check_exist_groups import check_exist_groups
 from tables.send_schedule import get_today_schedule, get_tomorrow_schedule
-from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule, get_user_settings, edit_settings, cycle_edit_time
+from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule, get_user_settings, edit_settings, cycle_edit_time, find_teacher
+from tables.schedule_manager import WEEK_DAYS
+import datetime
 
 load_dotenv()
-
 privateChatRouter = Router()
 
 @privateChatRouter.message(CommandStart())
@@ -25,6 +25,47 @@ async def startChat(message: Message) -> None:
     
     await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"🦊Привет, студент!\n\nЧтобы начать работу с ботом, напиши свою группу.\nПримеры: Б12-345-6\nб12-345-6")
 
+@privateChatRouter.message(Command("find"))
+async def process_teacher_search(message: Message) -> None:
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2:
+        await message.answer("Пожалуйста, укажите фамилию как на примере <code>/find Фамилия</code>")
+        return
+        
+    teacher_query = args[1].strip()
+    now = datetime.datetime.now()
+    current_week = 1 if now.isocalendar()[1] % 2 != 0 else 2
+    day_name = WEEK_DAYS[now.weekday()][0] if now.weekday() < 6 else "Понедельник"
+
+    results = await find_teacher(teacher_query, day_name, current_week)
+    
+    if not results:
+        await message.answer(text=f"На сегодня пар у преподавателя <i>{teacher_query}</i> не найдено")
+        return # Выходим, если ничего не нашли
+
+    # Группировка потоковых лекций
+    groups_dict = {}
+    for i in results:
+        # В ключ добавляем еще и название предмета, чтобы разные пары в одно время не слились
+        key = (i.start_time, i.subject, i.audience)
+        if key not in groups_dict:
+            groups_dict[key] = []
+        if i.group_name not in groups_dict[key]:
+            groups_dict[key].append(i.group_name)
+            
+    result_msg = [f"🔎 <b>Расписание {teacher_query} на сегодня:</b>\n"]
+    
+    # Сортируем по времени
+    sorted_keys = sorted(groups_dict.keys(), key=lambda x: x[0])
+    
+    for (time, subject, audience) in sorted_keys:
+        group_list = ", ".join(groups_dict[(time, subject, audience)])
+        result_msg.append(f"⏱️ <b>{time}</b> — гр. {group_list}")
+        result_msg.append(f"📚 {subject}")
+        result_msg.append(f"📍 Ауд: <b>{audience}</b>\n")
+        
+    await message.answer("\n".join(result_msg))
+    
 @privateChatRouter.message(F.text)
 async def save_group(message: Message) -> None:    
     user_text = message.text
@@ -37,6 +78,11 @@ async def save_group(message: Message) -> None:
     await update_user_group(tg_id=message.from_user.id, group=user_text)
     
     await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"🦊Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())
+
+@privateChatRouter.callback_query(lambda call: call.data == "find_teacher")
+async def ask_teacher_name(callback: CallbackQuery) -> None:
+    await callback.message.answer(text="Чтобы найти преподавателя, у которого сегодня пары -- введи <code>/find 'Фамилия преподавателя'</code>")
+    await callback.answer()
 
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
@@ -76,17 +122,17 @@ async def send_week_schedule(callback: CallbackQuery) -> None:
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{schedule_text}"),reply_markup=keyboards.schedule_keyboard())
 
 @privateChatRouter.callback_query(lambda call: call.data == "settings")
-async def show_settings(callback: CallbackQuery):
+async def show_settings(callback: CallbackQuery) -> None:
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SETTINGS'),caption="Вы находитесь в настройках бота. Выберите что хотите изменить"), reply_markup=keyboards.settings_keyboard())
   
 @privateChatRouter.callback_query(lambda call: call.data == "notification_mode")
-async def show_notifications_settings(callback: CallbackQuery):
+async def show_notifications_settings(callback: CallbackQuery) -> None:
     settings = await get_user_settings(tg_id=callback.from_user.id)
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SETTINGS'),caption="🔔 Управление уведомлениями\n\nНастрой Кванта под свой ритм жизни, чтобы не пропускать важное и не отвлекаться на лишнее:\n🔹 Напоминания о парах — пришлю пуш с кабинетом и предметом до начала занятия.\n🔹 Время — выбери, за сколько минут тебе нужно успеть добежать до аудитории.\n🔹 Сводка на день — утром пришлю краткий план всех твоих пар на сегодня.\n🔹 План на завтра — вечером напомню, во сколько завтра первая пара, чтобы ты знал, во сколько ставить будильник.\n\nНастрой кнопки ниже под себя:"), reply_markup=keyboards.notify_settings(is_active=settings.is_active, time_offset=settings.time_offset, morning=settings.morning_summary, evening=settings.evening_summary))
     await callback.answer()
 
 @privateChatRouter.callback_query(lambda call: call.data.startswith("notif_"))
-async def edit_toggle_notif(callback: CallbackQuery):
+async def edit_toggle_notif(callback: CallbackQuery) -> None:
     if callback.data == "notif_time_cycle":
         return await edit_time_notif(callback)
     
@@ -107,7 +153,7 @@ async def edit_toggle_notif(callback: CallbackQuery):
     await callback.answer("Получилось! Настройки уведомлений изменились✅")
         
 @privateChatRouter.callback_query(lambda call: call.data == "notif_time_cycle")
-async def edit_time_notif(callback: CallbackQuery):
+async def edit_time_notif(callback: CallbackQuery) -> None:
     new_time = await cycle_edit_time(callback.from_user.id)
     settings = await get_user_settings(callback.from_user.id)
     
