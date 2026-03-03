@@ -33,7 +33,8 @@ async def message_constructor(schedule: pd.DataFrame, save_to_db=False, group=No
             subject_raw = str(row.iloc[-4]).replace('\n', ' ').strip()
             type_raw = str(row.iloc[-3]).replace('\n', ' ').strip()
             aud_raw = str(row.iloc[-1]).replace('\n', ' ').strip()
-
+            teacher_raw = str(row.iloc[-2]).replace('\n', ' ').strip()
+            
             # Пропускаем пустые ячейки
             if subject_raw.lower() in ['nan', '', '-', 'none']:
                 continue
@@ -50,7 +51,7 @@ async def message_constructor(schedule: pd.DataFrame, save_to_db=False, group=No
             if save_to_db and group and day and week_type:
                 from database.requests import add_lesson_to_db
                 lesson_start_time = LESSONS_START.get(lesson_num, "00:00")
-                await add_lesson_to_db(group_name=group, day_name=day, start_time=lesson_start_time, subject=subject, audience=audience, week_type=week_type)
+                await add_lesson_to_db(group_name=group, day_name=day, start_time=lesson_start_time, subject=subject, audience=audience, week_type=week_type, teacher=teacher_raw)
                 
             # Сборка
             type_str = f"({l_type})" if l_type else ""

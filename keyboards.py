@@ -10,7 +10,16 @@ def choice_mode_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Расписание на сегодня", callback_data="today")],
         [InlineKeyboardButton(text="Расписание на завтра", callback_data="tomorrow")],
-        [InlineKeyboardButton(text="Расписание на неделю", callback_data="week")]
+        [InlineKeyboardButton(text="Расписание на неделю", callback_data="week")],
+        [InlineKeyboardButton(text="🔎 Найти преподавателя", callback_data="find_teacher")]
+    ])
+
+def find_teacher_keyboard(current_week: int, teacher_name: str):
+    next_week = 2 if current_week == 1 else 1
+    next_week_label = "II" if next_week == 2 else "I"
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"Неделя {next_week_label}➡️", callback_data=f"f_teach_{next_week}_{teacher_name}")],
+        [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")]       
     ])
 
 def schedule_keyboard():
