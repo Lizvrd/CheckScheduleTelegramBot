@@ -5,7 +5,7 @@ def get_upper_under_week_type() -> int:
     # ISO-неделя: 1, 3, 5... (Нечетная) -> Тип 1 (I)
     # ISO-неделя: 2, 4, 6... (Четная) -> Тип 2 (II)
     week_num = datetime.now().isocalendar()[1]
-    return 1 if week_num % 2 != 0 else 2
+    return 1 if week_num % 2 == 0 else 2
 
 async def filter(df: pd.DataFrame, week_type: int = None) -> pd.DataFrame:
     if df.empty:
@@ -20,9 +20,9 @@ async def filter(df: pd.DataFrame, week_type: int = None) -> pd.DataFrame:
         if target_type == 1: # НЕДЕЛЯ I (Нечетная года)
             # Если раньше было == 0 и не работало, меняем на != 0
             # Теперь она будет брать НИЖНЮЮ строку из пары в Pandas
-            return relative_idx % 2 != 0 
+            return relative_idx % 2 == 0 
         else: # НЕДЕЛЯ II (Четная года)
             # А тут наоборот — ВЕРХНЮЮ
-            return relative_idx % 2 == 0
+            return relative_idx % 2 != 0
 
     return df[df.index.map(is_target_row)]

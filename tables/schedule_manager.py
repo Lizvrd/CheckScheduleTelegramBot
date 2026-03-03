@@ -162,7 +162,7 @@ async def rebuild_all_lessons_cache() -> None:
         target_date = now
     
     target_week_num = target_date.isocalendar()[1]
-    target_week_type = 1 if target_week_num % 2 != 0 else 2
+    target_week_type = 1 if target_week_num % 2 == 0 else 2
     
     print(f"--- ОБНОВЛЕНИЕ ---")
     print(f"Сегодня: {now.strftime('%A')}, Неделя года: {now.isocalendar()[1]}")
