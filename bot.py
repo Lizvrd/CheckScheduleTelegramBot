@@ -12,7 +12,7 @@ dp = Dispatcher(storage=MemoryStorage())
 
 async def main() -> None:
     await async_main()
-    # await rebuild_all_lessons_cache()
+    await rebuild_all_lessons_cache()
     await setup_scheduler()
     dp.include_router(privateChatRouter)
     await dp.start_polling(bot)
