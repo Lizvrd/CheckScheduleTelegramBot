@@ -11,6 +11,7 @@ from tables.send_schedule import get_today_schedule, get_tomorrow_schedule
 from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule, get_user_settings, edit_settings, cycle_edit_time, find_teacher
 from tables.schedule_manager import WEEK_DAYS
 import datetime
+from utils.find_teacher import format_teacher_schedule
 
 load_dotenv()
 privateChatRouter = Router()
@@ -26,46 +27,10 @@ async def startChat(message: Message) -> None:
     await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"🦊Привет, студент!\n\nЧтобы начать работу с ботом, напиши свою группу.\nПримеры: Б12-345-6\nб12-345-6")
 
 @privateChatRouter.message(Command("find"))
-async def process_teacher_search(message: Message) -> None:
-    args = message.text.split(maxsplit=1)
-    if len(args) < 2:
-        await message.answer("Пожалуйста, укажите фамилию как на примере <code>/find Фамилия</code>")
-        return
-        
-    teacher_query = args[1].strip()
-    now = datetime.datetime.now()
-    current_week = 1 if now.isocalendar()[1] % 2 != 0 else 2
-    day_name = WEEK_DAYS[now.weekday()][0] if now.weekday() < 6 else "Понедельник"
+async def process_teacher(message: Message) -> None:
+    teacher_query = message.text
+    await message.answer(text=f"{await format_teacher_schedule(teacher_query)}")
 
-    results = await find_teacher(teacher_query, day_name, current_week)
-    
-    if not results:
-        await message.answer(text=f"На сегодня пар у преподавателя <i>{teacher_query}</i> не найдено")
-        return # Выходим, если ничего не нашли
-
-    # Группировка потоковых лекций
-    groups_dict = {}
-    for i in results:
-        # В ключ добавляем еще и название предмета, чтобы разные пары в одно время не слились
-        key = (i.start_time, i.subject, i.audience)
-        if key not in groups_dict:
-            groups_dict[key] = []
-        if i.group_name not in groups_dict[key]:
-            groups_dict[key].append(i.group_name)
-            
-    result_msg = [f"🔎 <b>Расписание {teacher_query} на сегодня:</b>\n"]
-    
-    # Сортируем по времени
-    sorted_keys = sorted(groups_dict.keys(), key=lambda x: x[0])
-    
-    for (time, subject, audience) in sorted_keys:
-        group_list = ", ".join(groups_dict[(time, subject, audience)])
-        result_msg.append(f"⏱️ <b>{time}</b> — гр. {group_list}")
-        result_msg.append(f"📚 {subject}")
-        result_msg.append(f"📍 Ауд: <b>{audience}</b>\n")
-        
-    await message.answer("\n".join(result_msg))
-    
 @privateChatRouter.message(F.text)
 async def save_group(message: Message) -> None:    
     user_text = message.text
