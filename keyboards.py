@@ -14,6 +14,14 @@ def choice_mode_keyboard():
         [InlineKeyboardButton(text="🔎 Найти преподавателя", callback_data="find_teacher")]
     ])
 
+def find_teacher_keyboard(current_week: int, teacher_name: str):
+    next_week = 2 if current_week == 1 else 1
+    next_week_label = "II" if next_week == 2 else "I"
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"Неделя {next_week_label}➡️", callback_data=f"f_teach_{next_week}_{teacher_name}")],
+        [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")]       
+    ])
+
 def schedule_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Вернуться", callback_data="get_schedule")]
@@ -38,9 +46,4 @@ def notify_settings(is_active, time_offset, morning, evening):
         [InlineKeyboardButton(text=f"🌅 Сводка на день: {morning_emoji}", callback_data="notif_morning_toggle")],
         [InlineKeyboardButton(text=f"🌃 План на завтра: {evening_emoji}", callback_data="notif_evening_toggle")],
         [InlineKeyboardButton(text="🔙 Назад в настройки", callback_data="settings")]
-    ])
-    
-def where_is_teacher_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        
     ])

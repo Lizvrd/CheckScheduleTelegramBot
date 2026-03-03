@@ -11,7 +11,7 @@ from tables.send_schedule import get_today_schedule, get_tomorrow_schedule
 from database.requests import set_user, update_user_group, get_user_group, get_cached_schedule, get_user_settings, edit_settings, cycle_edit_time, find_teacher
 from tables.schedule_manager import WEEK_DAYS
 import datetime
-from utils.find_teacher import format_teacher_schedule
+from utils.find_teacher import format_teacher_week_schedule
 
 load_dotenv()
 privateChatRouter = Router()
@@ -27,10 +27,17 @@ async def startChat(message: Message) -> None:
     await bot.send_photo(message.from_user.id, photo=os.getenv("SAY_HELLO_PHOTO_LINK"), caption=f"🦊Привет, студент!\n\nЧтобы начать работу с ботом, напиши свою группу.\nПримеры: Б12-345-6\nб12-345-6")
 
 @privateChatRouter.message(Command("find"))
-async def process_teacher(message: Message) -> None:
-    teacher_query = message.text
-    await message.answer(text=f"{await format_teacher_schedule(teacher_query)}")
+async def search_teacher_all_data(message: Message) -> None:
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2:
+        await message.answer(text="Пожалуйста, укажите фамилию: <code>/find Фамилия</code>")
+        return
+    teacher_query = args[1].strip()
+    now = datetime.datetime.now().weekday()
+    current_week = 1 if now % 2 == 0 else 2
+    await message.answer(text=f"{await format_teacher_week_schedule(teacher_query, current_week)}", reply_markup=keyboards.find_teacher_keyboard(teacher_name=teacher_query, current_week=current_week))
 
+# Group Registration
 @privateChatRouter.message(F.text)
 async def save_group(message: Message) -> None:    
     user_text = message.text
@@ -44,11 +51,22 @@ async def save_group(message: Message) -> None:
     
     await bot.send_photo(message.from_user.id, photo=os.getenv("GROUP_IS_FOUND_LINK"), caption=f"🦊Привет, студент! 🎓\nЯ тут, чтобы ты никогда не опоздал на пару (ну, почти никогда).\nЧто могу:\n✓ Показать расписание твоей группы на любой день.\n✓ Найти, где и когда ведёт занятия нужный препод.\n✓ Напомнить о парах (включи уведомления!).\n✓ Данные расписания обновлются автоматически при изменении анализе даты на сайте.\n\nА теперь давай найдём твои занятия! Жми «Расписание» 👇",reply_markup=keyboards.start_keyboard())
 
+# Find Teacher Callback
 @privateChatRouter.callback_query(lambda call: call.data == "find_teacher")
 async def ask_teacher_name(callback: CallbackQuery) -> None:
     await callback.message.answer(text="Чтобы найти преподавателя, у которого сегодня пары -- введи <code>/find 'Фамилия преподавателя'</code>")
     await callback.answer()
 
+@privateChatRouter.callback_query(lambda call: call.data.startswith("f_teach"))
+async def next_week_teacher_search(callback: CallbackQuery):
+    data = callback.data.split('_')
+    new_week = int(data[2])
+    teacher_name = data[3]
+
+    await callback.message.edit_text(text=f"{await format_teacher_week_schedule(teacher_query=teacher_name, week_type=new_week)}", reply_markup=keyboards.find_teacher_keyboard(teacher_name=teacher_name, current_week=new_week))
+    await callback.answer()
+
+# Schedule Callback
 @privateChatRouter.callback_query(lambda call: call.data == "get_schedule")
 async def get_schedule(callback: CallbackQuery) -> None:
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("GROUP_IS_FOUND_LINK"),caption="🦊Для получения расписания нужно выбрать режим работы. Выбери режим вывода:"), reply_markup=keyboards.choice_mode_keyboard())
@@ -86,6 +104,7 @@ async def send_week_schedule(callback: CallbackQuery) -> None:
         await callback.message.answer(text=schedule_text, reply_markup=keyboards.schedule_keyboard())
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv("WEEK_SCHEDULE_LINK"),caption=f"🦊Расписание на неделю: \n{schedule_text}"),reply_markup=keyboards.schedule_keyboard())
 
+# Settings Callback
 @privateChatRouter.callback_query(lambda call: call.data == "settings")
 async def show_settings(callback: CallbackQuery) -> None:
     await callback.message.edit_media(media=InputMediaPhoto(media=os.getenv('SETTINGS'),caption="Вы находитесь в настройках бота. Выберите что хотите изменить"), reply_markup=keyboards.settings_keyboard())
