@@ -40,6 +40,7 @@ class Lesson(Base):
     day_name: Mapped[str] = mapped_column(String)
     start_time: Mapped[str] = mapped_column(String)
     subject: Mapped[str] = mapped_column(String)
+    teacher: Mapped[str] = mapped_column(String, nullable=True)
     audience: Mapped[str] = mapped_column(String)
     week_type: Mapped[int] = mapped_column(Integer)
     
