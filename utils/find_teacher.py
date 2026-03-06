@@ -6,7 +6,8 @@ from typing import List
 async def format_teacher_week_schedule(teacher_query: str, week_type: int):
     # Очистка запроса (убираем команду, если она есть)
     teacher_name = teacher_query.replace("/find ", "").strip()
-    
+    teacher_name = teacher_name[0].upper() + teacher_name[1:]
+    print(teacher_name)
     header_text = f"🔎 <b>Расписание {teacher_name}</b>\n"
     header_text += f"Неделя: <b>{'I' if week_type == 1 else 'II'}</b>\n"
     
